@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<root>
+    <database>
+        <serverIP>10.7.111.104</serverIP>
+        <dataSource>10.7.111.104\SAGEX3DATA</dataSource>
+        <initialCatalog>x3erpv12</initialCatalog>
+        <databaseName>x3erpv12</databaseName>
+        <dbUserID>CMS</dbUserID>
+        <dbPassword>CMS@123</dbPassword>
+    </database>
+
+    <RDP>
+        <Directory>\\10.7.111.106\CxSysTest\ProcessPD\</Directory>
+        <Domain>klvm006</Domain>
+        <Username>cms_dev</Username>
+        <Password>Cms@1234</Password>
+    </RDP>
+
+    <UserID>
+        <SiteKLPudu>X3fcpudu</SiteKLPudu>
+        <SiteKlang>X3fcklang</SiteKlang>
+        <SiteMelaka>X3fcmelaka</SiteMelaka>
+    </UserID>
+
+    <API>
+        <Site>
+            <KLPudu>https://tzuchipudu.dyndns.org/clinicsysmini/sage_points.php</KLPudu>
+            <Klang>https://tzuchiklang.dyndns.org/clinicsysmini/sage_points.php</Klang>
+            <Melaka>https://tzuchimelaka.dyndns.org/clinicsysmini/sage_points.php</Melaka>
+        </Site>
+    </API>
+
+    <Logs>
+        <LogPath>Logs.txt</LogPath>
+    </Logs>
+</root>
