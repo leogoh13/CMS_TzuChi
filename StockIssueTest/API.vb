@@ -1,5 +1,7 @@
-﻿Imports System.IO
+﻿Imports System.CodeDom.Compiler
+Imports System.IO
 Imports System.Net
+Imports System.Text
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 
@@ -10,8 +12,6 @@ Public Class API
         httpWebRequest.Method = "POST"
 
         Using streamWriter = New StreamWriter(httpWebRequest.GetRequestStream())
-            Console.WriteLine(website)
-            Console.WriteLine(body)
             streamWriter.Write(body)
         End Using
 
@@ -38,26 +38,56 @@ Public Class API
         End If
     End Function
 
-    Public Function SendAPIAndGetProductID(body As String, website As String) As String
-        Dim productID = ""
-        Dim httpWebRequest = CType(WebRequest.Create(website), HttpWebRequest)
-        httpWebRequest.ContentType = "application/json"
-        httpWebRequest.Method = "POST"
+    Public Function SendAPIAndGetProductID(body As String, website As String) As ProductID_EndpointAResult
+        Dim jsonDataBytes = Encoding.UTF8.GetBytes(body)
+        Dim response As String = ""
+        Dim request As WebRequest
 
-        Using streamWriter = New StreamWriter(httpWebRequest.GetRequestStream())
-            streamWriter.Write(body)
-        End Using
-        Dim httpResponse = CType(httpWebRequest.GetResponse(), HttpWebResponse)
-        Dim responseText As String
-        If httpResponse.StatusCode = HttpStatusCode.OK Then
-            Console.WriteLine("Response OK")
-            Using streamReader = New StreamReader(httpResponse.GetResponseStream())
-                responseText = streamReader.ReadToEnd()
+        Try
+
+
+            request = WebRequest.Create(website)
+            With request
+                .ContentLength = jsonDataBytes.Length
+                .ContentType = "application/json"
+                .Method = "POST"
+            End With
+
+            Using requestStream = request.GetRequestStream
+                requestStream.Write(jsonDataBytes, 0, jsonDataBytes.Length)
+                requestStream.Close()
+
+                Using responseStream = request.GetResponse.GetResponseStream
+                    Using reader As New StreamReader(responseStream)
+                        response = reader.ReadToEnd()
+                    End Using
+                End Using
+
+                Console.WriteLine("response : " & response)
             End Using
-            productID = JObject.Parse(responseText)("status").ToString
-        End If
-        Console.WriteLine("productID : " & productID)
-        Return productID
+
+        Catch ex As Exception
+            Console.WriteLine(ex.ToString & " | " & ex.Message)
+        End Try
+
+        Dim productIDEndpointA As ProductID_EndpointAResult = JsonConvert.DeserializeObject(Of ProductID_EndpointAResult)(response)
+
+        For Each field In productIDEndpointA.results
+            Console.WriteLine(field.ToString + " : " + field.id)
+        Next
+        Return productIDEndpointA
     End Function
 
 End Class
+
+
+Public Class ProductID_EndpointADetail
+    Public id As String
+    Public product As String
+    Public status As String
+End Class
+Public Class ProductID_EndpointAResult
+    Public itemName As String
+    Public results As List(Of ProductID_EndpointADetail)
+End Class
+

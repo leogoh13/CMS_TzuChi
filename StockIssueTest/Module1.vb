@@ -1,6 +1,7 @@
 ﻿Imports System.IO
 Imports System.Text
 Imports System.Data.SqlClient
+Imports Microsoft.VisualBasic.Logging
 
 Module Module1
 
@@ -21,18 +22,10 @@ Module Module1
         Dim RDP_Domain As String = XMLX.GetSingleValue("//RDP/Domain")
         Dim RDP_Username As String = XMLX.GetSingleValue("//RDP/Username")
         Dim RDP_Password As String = XMLX.GetSingleValue("//RDP/Password")
-
-
-        'impersonator.Impersonator(RDP_Domain, RDP_Username, RDP_Password)
-        'Dim dir As New IO.DirectoryInfo(RDP_Directory)
-        'For Each file In dir.GetFiles()
-        '    Console.WriteLine(file.FullName)
-        'Next
-
         Dim json As New JSONGenerator()
+
         Dim retVal = json.GetIssuance_EndpointD()
         Console.WriteLine(retVal)
-
     End Sub
 
 
@@ -126,3 +119,38 @@ Module Module1
         Return result
     End Function
 End Module
+
+
+Public Class Logger
+    Shared filepath As String = $"{My.Application.Info.DirectoryPath}\Logs\Log_{Date.UtcNow.ToString("yyyyMMdd")}.log"
+    Shared file As New FileInfo(filepath)
+    Public Shared Sub WriteLine(str As String)
+        If Not file.Exists() Then
+            file.Create().Close()
+        End If
+
+        Dim sw As StreamWriter = file.AppendText()
+        sw.WriteLine(str)
+        sw.Close()
+
+    End Sub
+End Class
+
+
+
+Public Class CMS_ISSUANCE
+
+    Public itemNumber As String
+    Public itemIdNumber As String
+    Public hash As String
+    Public invoiceNumber As String
+    Public vendorID As String
+    Public itemDesc1 As String
+    Public itemDesc2 As String
+    Public siteTo As String
+    Public quantity As Double
+    Public cost As Double
+    Public expirationDate As Date
+    Public updateDate As Date
+
+End Class

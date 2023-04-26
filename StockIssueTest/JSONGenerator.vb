@@ -1,6 +1,9 @@
-﻿Public Class JSONGenerator
+﻿Imports Newtonsoft.Json
+Imports Newtonsoft.Json.Linq
 
-    Public Function GetProductID_EndpointA(item As String, site As String) As String
+Public Class JSONGenerator
+
+    Public Function GetProductID_EndpointA(item As String, site As String) As ProductID_EndpointADetail
         Dim columns As New List(Of String)
         columns.Add("ITEM")
         columns.Add("DESC1")
@@ -37,7 +40,7 @@
         }}"
 
         Dim api As New API
-        Return api.SendAPIAndGetProductID(str, website)
+        Return api.SendAPIAndGetProductID(str, website).results.Item(0)
     End Function
 
     Public Function GetIssuance_EndpointD() As String
@@ -72,11 +75,14 @@
 		            ""date"" : ""{expirationDate}"",
 		            ""vendor_id"" : 31,
 		            ""invoice_no"" : ""{invoiceNumber}"",
-		            ""stocks"" : {GetIssuance_Items(invoiceNumber, itemNumber, quantity, expirationDate, amount, site)},
+		            ""stocks"" : [{GetIssuance_Items(invoiceNumber, itemNumber, quantity, expirationDate, amount, site)}
 	            }}
             }}"
 
-        Return str
+        Dim parsedJSOn As JToken = JToken.Parse(str)
+        Dim beautified = parsedJSOn.ToString(Formatting.Indented)
+        Dim minified = parsedJSOn.ToString(Formatting.None)
+        Return beautified
     End Function
 
     Public Function GetIssuance_Items(invoiceNumber, item, qty, expiryDate, cost, site) As String
@@ -84,9 +90,6 @@
         Dim sql As New SQL()
         Dim amountOfItem = sql.ExecuteCustomQueryAndReturnValue($"SELECT COUNT(*) COL1 FROM YTCPROD.STOJOU WHERE VCRNUM_0 = '{invoiceNumber}'")
         Dim str As String = ""
-        If (Convert.ToInt32(amountOfItem) > 1) Then
-            str += "["
-        End If
 
         Dim list As New List(Of String)
         list.Add("ITEM")
@@ -98,37 +101,38 @@
         Dim retVal = sql.ExecuteQueryAndReturnValue(query, list)
 
         For Each value In retVal
+            Console.WriteLine("value : " & value)
             str =
            $"{{
-        	""itemId"" : {GetProductID_EndpointA(item, site)},
-        	""qty"" : {item},
+        	""itemId"" : {GetProductID_EndpointA(item, site).id},
+        	""qty"" : {qty},
         	""expiry"" : ""{expiryDate}"",
         	""cost"" : {cost}
         }}"
-
-            str += ","
         Next
-
-        str.Substring(0, str.Length - 1)
-
-        If (Convert.ToInt32(amountOfItem) > 1) Then
-            str += "]"
-        End If
-
+        str += "]"
         Return str
     End Function
 
     Public Function GetIssuance_Invoice() As List(Of String)
-        Dim query As String = "SELECT VCRNUM_0 INVNUM, STOFCY_0 SITES, ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT FROM YTCPROD.STOJOU WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM YTCPROD.TEMP_STOJOU )"
+        'Dim query As String = "SELECT VCRNUM_0 INVNUM, STOFCY_0 SITES, ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT FROM YTCPROD.STOJOU WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM YTCPROD.TEMP_STOJOU )"
+        Dim query As String =
+            $"SELECT 
+	            A.ITMREF_0 ITEM, 
+	            B.ITMDES1_0 DESCRIPTION1,
+	            B.ITMDES2_0 DESCRIPTION2,
+	            A.STOFCY_0 SITETO,
+	            QTYSTU_0 * -1 QUANTITY, 
+	            CPRAMT_0 * -1 AMOUNT, 
+	            SHLDAT_0 EXPIRATIONDATE,
+	            A.UPDDATTIM_0 UPDATEDATE,
+	            A.VCRNUM_0 INVOICENUMBER
+            FROM YTCPROD.STOJOU A
+            LEFT JOIN YTCPROD.ITMMASTER B ON A.ITMREF_0 = B.ITMREF_0
+            WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM YTCPROD.TEMP_STOJOU GROUP BY VCRNUM_0 )"
         Dim sql As New SQL()
-        Dim columns As New List(Of String)
-        columns.Add("INVNUM")
-        columns.Add("SITES")
-        columns.Add("ITEM")
-        columns.Add("QTY")
-        columns.Add("AMT")
-        columns.Add("EXPDAT")
+        Dim issuance As CMS_ISSUANCE
 
-        Return sql.ExecuteQueryAndReturnValue(query, columns)
+        Return sql.ExecuteQueryAndReturnValue(query, issuance)
     End Function
 End Class

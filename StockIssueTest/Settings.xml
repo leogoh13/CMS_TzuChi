@@ -31,7 +31,7 @@
         </Site>
     </API>
 
-    <Logs>
-        <LogPath>Logs.txt</LogPath>
-    </Logs>
+	<CMS>
+		<VendorID>31</VendorID>
+	</CMS>
 </root>

@@ -40,7 +40,7 @@ Public Class SQL
             sqlConnection.Open()
             sqlCommand = New SqlCommand(query, sqlConnection)
             sqlDataReader = sqlCommand.ExecuteReader()
-            Console.WriteLine("SQL Query Executed..")
+            Console.WriteLine("SQL Query Executed.. : " & query)
 
             While sqlDataReader.Read
 
@@ -60,19 +60,18 @@ Public Class SQL
         Return rowList
     End Function
 
-    Public Function ExecuteQueryAndReturnValue(query As String, list As List(Of String)) As List(Of String)
+    Public Function ExecuteQueryAndReturnValue(query As String, obj As Object) As Object
         Dim rowList As New List(Of String)
 
         Try
             sqlConnection.Open()
             sqlCommand = New SqlCommand(query, sqlConnection)
             sqlDataReader = sqlCommand.ExecuteReader()
-            Console.WriteLine("SQL Query Executed..")
+            Console.WriteLine("SQL Query Executed.. : " & query)
 
             While sqlDataReader.Read
-
                 Dim index As Integer = 0
-                For Each column In list
+                For Each column In List
                     rowList.Add(sqlDataReader(column))
                 Next
             End While
@@ -94,7 +93,30 @@ Public Class SQL
             sqlConnection.Open()
             sqlCommand = New SqlCommand(query, sqlConnection)
             sqlDataReader = sqlCommand.ExecuteReader()
-            Console.WriteLine("SQL Query Executed..")
+            Console.WriteLine("SQL Query Executed.. : " & query)
+
+            While sqlDataReader.Read
+                str = Convert.ToString(sqlDataReader.GetInt32(0))
+            End While
+
+            sqlConnection.Close()
+        Catch ex As Exception
+            sqlConnection.Close()
+            Console.WriteLine(ex.Message)
+            Console.WriteLine(ex.ToString)
+        End Try
+
+        Return str
+    End Function
+
+    Public Function ExecuteQueryReturnClass(query As String, ByRef obj As Object)
+        Dim str As String = Nothing
+        Dim value
+        Try
+            sqlConnection.Open()
+            sqlCommand = New SqlCommand(query, sqlConnection)
+            sqlDataReader = sqlCommand.ExecuteReader()
+            Console.WriteLine("SQL Query Executed.. : " & query)
 
             While sqlDataReader.Read
                 str = Convert.ToString(sqlDataReader.GetInt32(0))
