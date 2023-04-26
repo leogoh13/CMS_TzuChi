@@ -2,23 +2,10 @@
 
 Public Class SQL
 
-    Dim QPRODUCTID As String = "SELECT top 1 ITMREF_0 FROM x3erpv12.YTCPROD.TEMP_STOJOU WHERE ITMID is not null and CHECK_NUM = '0';"
-    Dim QDATE As String = "SELECT top 1 UPDDATTIM_0 FROM x3erpv12.YTCPROD.TEMP_STOJOU ;"
-    Dim QINVOICENO As String = "SELECT top 1 VCRNUM_0 FROM x3erpv12.YTCPROD.TEMP_STOJOU ;"
-    Dim QITEMID As String = "SELECT top 1 ITMID FROM x3erpv12.YTCPROD.TEMP_STOJOU ;"
-    Dim QQTY As String = "SELECT top 1 QTYPCU_0 FROM x3erpv12.YTCPROD.TEMP_STOJOU ;"
-    Dim QEXPDA As String = "SELECT top 1 SHLDAT_0 FROM x3erpv12.YTCPROD.TEMP_STOJOU ;"
-    Dim QCOST As String = "SELECT top 1 CPRAMT_0 FROM x3erpv12.YTCPROD.TEMP_STOJOU ;"
-    Dim QCOUNTQTY As String = "SELECT COUNT(*) FROM x3erpv12.YTCPROD.TEMP_STOJOU WHERE ITMID is not null and CHECK_NUM = '0' and ITMREF_0 ='"
-    Dim QCOUNT As String = "SELECT COUNT(*) FROM x3erpv12.YTCPROD.TEMP_STOJOU WHERE CHECK_NUM = '0' and ITMREF_0 ='"
-
     Dim sqlConnStr As String
-    Dim dataSource As String
     Dim sqlCommand As SqlCommand
     Dim sqlDataReader As SqlDataReader
     Dim sqlConnection As SqlConnection
-    Dim initialCatalog As String
-    Dim xmlSettings As XMLX
 
 
     Public Sub New()

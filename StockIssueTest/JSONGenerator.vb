@@ -29,7 +29,7 @@ Public Class JSONGenerator
                 website = XMLX.GetSingleValue("//API/Site/KLPudu")
         End Select
 
-        Dim itemName = retVal(0).Trim & " " & retVal(1).Trim & " " & retVal(2).Trim
+        Dim itemName = retVal(0).Trim & " " & retVal(1).Trim '& " " & retVal(2).Trim
         Dim hash = Hash_SHA1.HashSHA1($"{userID}_{itemName.Trim}_{GlobalHashKey}")
 
         Dim str =
@@ -39,8 +39,12 @@ Public Class JSONGenerator
             ""itemName"" : ""{itemName}""
         }}"
 
+        Console.WriteLine("EnpointA JSON : " & str)
+        Console.WriteLine("EnpointA URL : " & website)
+
         Dim api As New API
-        Return api.SendAPIAndGetProductID(str, website)
+        Dim product As Product_EndpointA_Detail = api.SendAPIAndGetProductID(str, website).results.Item(0)
+        Return product.id
     End Function
 
     Public Function GetIssuance_EndpointD() As String
@@ -81,19 +85,15 @@ Public Class JSONGenerator
 		            ""date"" : ""{expirationDate}"",
 		            ""vendor_id"" : 31,
 		            ""invoice_no"" : ""{invoiceNumber}"",
-		            ""stocks"" : {GetIssuance_Items(invoiceNumber, itemNumber, quantity, expirationDate, amount, site)},
+		            ""stocks"" : [{GetIssuance_Items(invoiceNumber, itemNumber, quantity, expirationDate, amount, site)}]
 	            }}
             }}"
 
         Dim api As New API()
-        Console.WriteLine("response" + str)
-        Console.WriteLine("response" + website)
         Dim response = api.SendAPIReturnNull(str, website)
-        Console.WriteLine("response" + response)
-        'Dim parsedJSON = JToken.Parse(response)
-        'Dim beautified = parsedJSON.ToString(Formatting.Indented)
-        'Dim minified = parsedJSON.ToString(Formatting.None)
-        'Logger.WriteLine(beautified)
+        Dim parsedJSON = JToken.Parse(response)
+        Dim beautified = parsedJSON.ToString(Formatting.Indented)
+        Dim minified = parsedJSON.ToString(Formatting.None)
         Return str
     End Function
 
@@ -102,9 +102,6 @@ Public Class JSONGenerator
         Dim sql As New SQL()
         Dim amountOfItem = sql.ExecuteCustomQueryAndReturnValue($"SELECT COUNT(*) COL1 FROM YTCPROD.STOJOU WHERE VCRNUM_0 = '{invoiceNumber}'")
         Dim str As String = ""
-        If (Convert.ToInt32(amountOfItem) > 1) Then
-            str += "["
-        End If
 
         Dim list As New List(Of String)
         list.Add("ITEM")
@@ -115,24 +112,14 @@ Public Class JSONGenerator
         Dim query = "SELECT ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT FROM YTCPROD.STOJOU WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM YTCPROD.TEMP_STOJOU )"
         Dim retVal = sql.ExecuteQueryAndReturnValue(query, list)
 
-        For Each value In retVal
-            str =
-           $"{{
+        str =
+       $"{{
         	""itemId"" : {GetProductID_EndpointA(item, site)},
-        	""qty"" : {item},
+        	""qty"" : {qty},
         	""expiry"" : ""{expiryDate}"",
         	""cost"" : {cost}
         }}"
-
-            str += ","
-        Next
-
         str.Substring(0, str.Length - 1)
-
-        If (Convert.ToInt32(amountOfItem) > 1) Then
-            str += "]"
-        End If
-
         Return str
     End Function
 
