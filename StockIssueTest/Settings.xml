@@ -8,6 +8,7 @@
         <databaseName>x3erpv12</databaseName>
         <dbUserID>CMS</dbUserID>
         <dbPassword>CMS@123</dbPassword>
+        <databaseSchema>YTCPROD</databaseSchema>
     </database>
 
     <RDP>

@@ -1,10 +1,7 @@
 ﻿Imports System.IO
 Imports System.Net
-Imports System.Net.Mime
 Imports System.Text
-Imports System.Web
 Imports Newtonsoft.Json
-Imports Newtonsoft.Json.Linq
 
 Public Class API
     Public Function SendAPIReturnNull(body As String, website As String) As String
@@ -60,13 +57,12 @@ Public Class API
                 End Using
 
             End Using
-            product = JsonConvert.DeserializeObject(Of Product_EndpointA_Header)(response)
 
             Logger.WriteLine("Product ID response : " + response)
         Catch ex As Exception
             Logger.WriteLine(ex.ToString & " " & ex.Message)
         End Try
-
+        product = JsonConvert.DeserializeObject(Of Product_EndpointA_Header)(response)
         Return product
     End Function
 

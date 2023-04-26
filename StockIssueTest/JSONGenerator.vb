@@ -11,7 +11,7 @@ Public Class JSONGenerator
 
         Dim sql As New SQL()
         Dim website As String
-        Dim query = $"SELECT ITMREF_0 ITEM, ITMDES1_0 DESC1, ITMDES2_0 DESC2 FROM YTCPROD.ITMMASTER WHERE ITMREF_0 = '{item}'"
+        Dim query = $"SELECT ITMREF_0 ITEM, ITMDES1_0 DESC1, ITMDES2_0 DESC2 FROM {GlobalDatabaseSchema}.ITMMASTER WHERE ITMREF_0 = '{item}'"
         Dim retVal = sql.ExecuteQueryAndReturnValue(query, columns)
         Dim userID = Nothing
         Select Case site
@@ -56,9 +56,10 @@ Public Class JSONGenerator
         Dim quantity = list(3)
         Dim amount = list(4)
         Dim expirationDate = list(5)
+        Dim lastUpdateDate = list(6)
 
-        Dim userID = ""
-        Dim website = ""
+        Dim userID As String
+        Dim website As String
 
         Select Case site
             Case site.Contains("F01")
@@ -82,7 +83,7 @@ Public Class JSONGenerator
 	            ""userId"" : ""{userID}"",
 	            ""hash"" : ""{Hash_SHA1.HashSHA1($"{userID}_{invoiceNumber}_{GlobalHashKey}")}"",
 	            ""new_stock"" : {{
-		            ""date"" : ""{expirationDate}"",
+		            ""date"" : ""{Convert.ToDateTime(lastUpdateDate).ToString("yyyy-MM-dd")}"",
 		            ""vendor_id"" : 31,
 		            ""invoice_no"" : ""{invoiceNumber}"",
 		            ""stocks"" : [{GetIssuance_Items(invoiceNumber, itemNumber, quantity, expirationDate, amount, site)}]
@@ -94,13 +95,15 @@ Public Class JSONGenerator
         Dim parsedJSON = JToken.Parse(response)
         Dim beautified = parsedJSON.ToString(Formatting.Indented)
         Dim minified = parsedJSON.ToString(Formatting.None)
+        Logger.WriteLine(beautified)
+        Logger.WriteLine(minified)
         Return str
     End Function
 
     Public Function GetIssuance_Items(invoiceNumber, item, qty, expiryDate, cost, site) As String
 
         Dim sql As New SQL()
-        Dim amountOfItem = sql.ExecuteCustomQueryAndReturnValue($"SELECT COUNT(*) COL1 FROM YTCPROD.STOJOU WHERE VCRNUM_0 = '{invoiceNumber}'")
+        Dim amountOfItem = sql.ExecuteCustomQueryAndReturnValue($"SELECT COUNT(*) COL1 FROM {GlobalDatabaseSchema}.STOJOU WHERE VCRNUM_0 = '{invoiceNumber}'")
         Dim str As String = ""
 
         Dim list As New List(Of String)
@@ -109,14 +112,14 @@ Public Class JSONGenerator
         list.Add("AMT")
         list.Add("EXPDAT")
 
-        Dim query = "SELECT ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT FROM YTCPROD.STOJOU WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM YTCPROD.TEMP_STOJOU )"
+        Dim query = $"SELECT ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT FROM {GlobalDatabaseSchema}.STOJOU WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM {GlobalDatabaseSchema}.TEMP_STOJOU )"
         Dim retVal = sql.ExecuteQueryAndReturnValue(query, list)
 
         str =
        $"{{
         	""itemId"" : {GetProductID_EndpointA(item, site)},
         	""qty"" : {qty},
-        	""expiry"" : ""{expiryDate}"",
+        	""expiry"" : ""{Convert.ToDateTime(expiryDate).ToString("yyyy-MM-dd")}"",
         	""cost"" : {cost}
         }}"
         str.Substring(0, str.Length - 1)
@@ -124,7 +127,7 @@ Public Class JSONGenerator
     End Function
 
     Public Function GetIssuance_Invoice() As List(Of String)
-        Dim query As String = "SELECT VCRNUM_0 INVNUM, STOFCY_0 SITES, ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT FROM YTCPROD.STOJOU WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM YTCPROD.TEMP_STOJOU )"
+        Dim query As String = $"SELECT VCRNUM_0 INVNUM, STOFCY_0 SITES, ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT, UPDDATTIM_0 UPDATEDDATE FROM {GlobalDatabaseSchema}.STOJOU WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM {GlobalDatabaseSchema}.TEMP_STOJOU )"
         Dim sql As New SQL()
         Dim columns As New List(Of String)
         columns.Add("INVNUM")
@@ -133,6 +136,7 @@ Public Class JSONGenerator
         columns.Add("QTY")
         columns.Add("AMT")
         columns.Add("EXPDAT")
+        columns.Add("UPDATEDDATE")
 
         Return sql.ExecuteQueryAndReturnValue(query, columns)
     End Function
