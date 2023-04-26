@@ -76,9 +76,10 @@ Public Class JSONGenerator
                 website = XMLX.GetSingleValue("//API/Site/KLPudu")
         End Select
 
+        Try
 
-        Hash_SHA1.HashSHA1($"{userID}_{invoiceNumber}_{GlobalHashKey}")
-        Dim str As String =
+            Hash_SHA1.HashSHA1($"{userID}_{invoiceNumber}_{GlobalHashKey}")
+            Dim str As String =
             $"{{
 	            ""userId"" : ""{userID}"",
 	            ""hash"" : ""{Hash_SHA1.HashSHA1($"{userID}_{invoiceNumber}_{GlobalHashKey}")}"",
@@ -90,14 +91,20 @@ Public Class JSONGenerator
 	            }}
             }}"
 
-        Dim api As New API()
-        Dim response = api.SendAPIReturnNull(str, website)
-        Dim parsedJSON = JToken.Parse(response)
-        Dim beautified = parsedJSON.ToString(Formatting.Indented)
-        Dim minified = parsedJSON.ToString(Formatting.None)
-        Logger.WriteLine(beautified)
-        Logger.WriteLine(minified)
-        Return str
+            Dim api As New API()
+            Dim response = api.SendAPIReturnNull(str, website)
+            Dim parsedJSON = JToken.Parse(response)
+            Dim beautified = parsedJSON.ToString(Formatting.Indented)
+            Dim minified = parsedJSON.ToString(Formatting.None)
+            Logger.WriteLine(beautified)
+
+            Dim sql As New SQL
+            Dim query As String = $"DELETE FROM {GlobalDatabaseSchema}.TEMP_STOJOU WHERE VCRNUM_0 = '{invoiceNumber}'"
+            sql.ExecuteCustomQueryAndReturnValue(query)
+        Catch ex As Exception
+            Logger.WriteLine(ex.ToString & " " & ex.Message)
+        End Try
+        Return ""
     End Function
 
     Public Function GetIssuance_Items(invoiceNumber, item, qty, expiryDate, cost, site) As String

@@ -19,6 +19,30 @@ Public Class SQL
         sqlConnection = New SqlConnection(sqlConnStr)
     End Sub
 
+    Public Sub ExecuteQueryReturnNull(query As String)
+        Dim columns As New List(Of String)
+        Dim rowList As New List(Of String)
+
+        Try
+            sqlConnection.Open()
+            sqlCommand = New SqlCommand(query, sqlConnection)
+            sqlDataReader = sqlCommand.ExecuteReader()
+            Logger.WriteLine("SQL Query Executed..")
+
+            While sqlDataReader.Read
+                Dim index As Integer = 0
+                For Each column In columns
+                Next
+            End While
+
+            sqlConnection.Close()
+        Catch ex As Exception
+            sqlConnection.Close()
+            Logger.WriteLine(ex.Message)
+            Logger.WriteLine(ex.ToString)
+        End Try
+    End Sub
+
     Public Function ExecuteQueryAndReturnValue(query As String) As List(Of String)
         Dim columns As New List(Of String)
         Dim rowList As New List(Of String)
