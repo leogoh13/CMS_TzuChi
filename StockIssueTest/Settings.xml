@@ -18,13 +18,13 @@
         <Password>Cms@1234</Password>
     </RDP>
 
-    <UserID>
+	<UserID>
         <SiteKLPudu>X3fcpudu</SiteKLPudu>
         <SiteKlang>X3fcklang</SiteKlang>
         <SiteMelaka>X3fcmelaka</SiteMelaka>
     </UserID>
 
-    <API>
+	<API>
         <Site>
             <KLPudu>https://tzuchipudu.dyndns.org/clinicsysmini/sage_points.php</KLPudu>
             <Klang>https://tzuchiklang.dyndns.org/clinicsysmini/sage_points.php</Klang>
@@ -32,6 +32,21 @@
         </Site>
     </API>
 
+
+	<!--<UserID>
+		<SiteKLPudu>tzuchitest</SiteKLPudu>
+		<SiteKlang>tzuchitest</SiteKlang>
+		<SiteMelaka>tzuchitest</SiteMelaka>
+	</UserID>
+
+	<API>
+		<Site>
+			<KLPudu>https://tzuchitest.dyndns.org/clinicsysmini/sage_points.php</KLPudu>
+			<Klang></Klang>
+			<Melaka></Melaka>
+		</Site>
+	</API>-->
+	
 	<CMS>
 		<VendorID>31</VendorID>
 	</CMS>

@@ -49,26 +49,23 @@ Public Class JSONGenerator
 
     Public Function GetIssuance_EndpointD() As String
 
-        Dim list = GetIssuance_Invoice()
-        Dim invoiceNumber = list(0)
-        Dim site = list(1)
-        Dim itemNumber = list(2)
-        Dim quantity = list(3)
-        Dim amount = list(4)
-        Dim expirationDate = list(5)
-        Dim lastUpdateDate = list(6)
+        Dim issuance = GetIssuance_Invoice()
+
+        If issuance Is Nothing Then
+            Return ""
+        End If
 
         Dim userID As String
         Dim website As String
 
-        Select Case site
-            Case site.Contains("F01")
+        Select Case issuance.siteTo
+            Case issuance.siteTo.Contains("F01")
                 userID = XMLX.GetSingleValue("//UserID/SiteKLPudu")
                 website = XMLX.GetSingleValue("//API/Site/KLPudu")
-            Case site.Contains("F02")
+            Case issuance.siteTo.Contains("F02")
                 userID = XMLX.GetSingleValue("//UserID/SiteKlang")
                 website = XMLX.GetSingleValue("//API/Site/Klang")
-            Case site.Contains("F03")
+            Case issuance.siteTo.Contains("F03")
                 userID = XMLX.GetSingleValue("//UserID/SiteMelaka")
                 website = XMLX.GetSingleValue("//API/Site/Melaka")
             Case Else
@@ -78,16 +75,16 @@ Public Class JSONGenerator
 
         Try
 
-            Hash_SHA1.HashSHA1($"{userID}_{invoiceNumber}_{GlobalHashKey}")
+            Hash_SHA1.HashSHA1($"{userID}_{issuance.invoiceNumber}_{GlobalHashKey}")
             Dim str As String =
             $"{{
 	            ""userId"" : ""{userID}"",
-	            ""hash"" : ""{Hash_SHA1.HashSHA1($"{userID}_{invoiceNumber}_{GlobalHashKey}")}"",
+	            ""hash"" : ""{Hash_SHA1.HashSHA1($"{userID}_{issuance.invoiceNumber}_{GlobalHashKey}")}"",
 	            ""new_stock"" : {{
-		            ""date"" : ""{Convert.ToDateTime(lastUpdateDate).ToString("yyyy-MM-dd")}"",
+		            ""date"" : ""{Convert.ToDateTime(issuance.updateDate).ToString("yyyy-MM-dd")}"",
 		            ""vendor_id"" : 31,
-		            ""invoice_no"" : ""{invoiceNumber}"",
-		            ""stocks"" : [{GetIssuance_Items(invoiceNumber, itemNumber, quantity, expirationDate, amount, site)}]
+		            ""invoice_no"" : ""{issuance.invoiceNumber}"",
+		            ""stocks"" : [{GetIssuance_Items(issuance.invoiceNumber)}]
 	            }}
             }}"
 
@@ -99,7 +96,7 @@ Public Class JSONGenerator
             Logger.WriteLine(beautified)
 
             Dim sql As New SQL
-            Dim query As String = $"DELETE FROM {GlobalDatabaseSchema}.TEMP_STOJOU WHERE VCRNUM_0 = '{invoiceNumber}'"
+            Dim query As String = $"DELETE FROM {GlobalDatabaseSchema}.TEMP_STOJOU WHERE VCRNUM_0 = '{issuance.invoiceNumber}'"
             sql.ExecuteCustomQueryAndReturnValue(query)
         Catch ex As Exception
             Logger.WriteLine(ex.ToString & " " & ex.Message)
@@ -107,44 +104,47 @@ Public Class JSONGenerator
         Return ""
     End Function
 
-    Public Function GetIssuance_Items(invoiceNumber, item, qty, expiryDate, cost, site) As String
+    Public Function GetIssuance_Items(invoiceNumber) As String
 
         Dim sql As New SQL()
-        Dim amountOfItem = sql.ExecuteCustomQueryAndReturnValue($"SELECT COUNT(*) COL1 FROM {GlobalDatabaseSchema}.STOJOU WHERE VCRNUM_0 = '{invoiceNumber}'")
         Dim str As String = ""
+        Dim issuanceRecords As New List(Of CMS_ISSUANCE)
+        sql.ExecuteAndReturnSTOJOURecords(issuanceRecords)
 
-        Dim list As New List(Of String)
-        list.Add("ITEM")
-        list.Add("QTY")
-        list.Add("AMT")
-        list.Add("EXPDAT")
+        For Each issue In issuanceRecords
+            Console.WriteLine(issue.itemNumber)
+            Console.WriteLine(issue.siteTo)
+            Console.WriteLine(issue.expirationDate)
+            Console.WriteLine(issue.cost)
+            str +=
+           $"{{
+        	""itemId"" : {GetProductID_EndpointA(issue.itemNumber, issue.siteTo)},
+        	""qty"" : {issue.quantity},
+        	""expiry"" : ""{Convert.ToDateTime(issue.expirationDate).ToString("yyyy-MM-dd")}"",
+        	""cost"" : {issue.cost}
+            }},"
+        Next
+        Console.WriteLine("str : " + str)
+        Console.WriteLine("str.LastIndexOf("","").ToString : " + str.LastIndexOf(",").ToString)
+        Console.WriteLine("str.Length.ToString : " + str.Length.ToString)
 
-        Dim query = $"SELECT ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT FROM {GlobalDatabaseSchema}.STOJOU WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM {GlobalDatabaseSchema}.TEMP_STOJOU )"
-        Dim retVal = sql.ExecuteQueryAndReturnValue(query, list)
-
-        str =
-       $"{{
-        	""itemId"" : {GetProductID_EndpointA(item, site)},
-        	""qty"" : {qty},
-        	""expiry"" : ""{Convert.ToDateTime(expiryDate).ToString("yyyy-MM-dd")}"",
-        	""cost"" : {cost}
-        }}"
-        str.Substring(0, str.Length - 1)
+        str = str.Substring(0, str.LastIndexOf(","))
         Return str
+
     End Function
 
-    Public Function GetIssuance_Invoice() As List(Of String)
-        Dim query As String = $"SELECT VCRNUM_0 INVNUM, STOFCY_0 SITES, ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT, UPDDATTIM_0 UPDATEDDATE FROM {GlobalDatabaseSchema}.STOJOU WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM {GlobalDatabaseSchema}.TEMP_STOJOU )"
+    Public Function GetIssuance_Invoice() As CMS_ISSUANCE
+        Dim query As String = $"SELECT VCRNUM_0 INVNUM, STOFCY_0 SITES, ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT, UPDDATTIM_0 UPDATEDDATE FROM {GlobalDatabaseSchema}.STOJOU WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM {GlobalDatabaseSchema}.TEMP_STOJOU)"
         Dim sql As New SQL()
-        Dim columns As New List(Of String)
-        columns.Add("INVNUM")
-        columns.Add("SITES")
-        columns.Add("ITEM")
-        columns.Add("QTY")
-        columns.Add("AMT")
-        columns.Add("EXPDAT")
-        columns.Add("UPDATEDDATE")
+        Dim issuance As New List(Of CMS_ISSUANCE)
 
-        Return sql.ExecuteQueryAndReturnValue(query, columns)
+
+        sql.ExecuteAndReturnSTOJOURecords(issuance)
+        If issuance.Count > 0 Then
+            Return issuance.Item(0)
+        Else
+            Return Nothing
+        End If
     End Function
 End Class
+
