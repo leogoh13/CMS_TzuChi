@@ -21,7 +21,7 @@ Public Class SQL
     Public Sub ExecuteAndReturnSTOJOURecords(ByRef obj As List(Of CMS_ISSUANCE))
         Dim query = $"SELECT VCRNUM_0 INVNUM, STOFCY_0 SITES, ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT, UPDDATTIM_0 UPDATEDDATE 
                         FROM {GlobalDatabaseSchema}.STOJOU 
-                        WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM {GlobalDatabaseSchema}.TEMP_STOJOU)"
+                        WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM {GlobalDatabaseSchema}.TEMP_STOJOU) AND TRSTYP_0 = 2"
         Try
             sqlConnection.Open()
             sqlCommand = New SqlCommand(query, sqlConnection)
