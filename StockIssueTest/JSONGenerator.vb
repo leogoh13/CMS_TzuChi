@@ -52,26 +52,28 @@ Public Class JSONGenerator
         Dim issuance = GetIssuance_Invoice()
 
         If issuance Is Nothing Then
+            Logger.WriteLine("Nothing to issue")
             Return ""
         End If
 
         Dim userID As String
         Dim website As String
 
-        Select Case issuance.siteTo
-            Case issuance.siteTo.Contains("F01")
-                userID = XMLX.GetSingleValue("//UserID/SiteKLPudu")
-                website = XMLX.GetSingleValue("//API/Site/KLPudu")
-            Case issuance.siteTo.Contains("F02")
-                userID = XMLX.GetSingleValue("//UserID/SiteKlang")
-                website = XMLX.GetSingleValue("//API/Site/Klang")
-            Case issuance.siteTo.Contains("F03")
-                userID = XMLX.GetSingleValue("//UserID/SiteMelaka")
-                website = XMLX.GetSingleValue("//API/Site/Melaka")
-            Case Else
-                userID = XMLX.GetSingleValue("//UserID/SiteKLPudu")
-                website = XMLX.GetSingleValue("//API/Site/KLPudu")
-        End Select
+        Logger.WriteLine("issuance.siteTo : " + issuance.siteTo)
+
+        If issuance.siteTo.Contains("F01") Then
+            userID = XMLX.GetSingleValue("//UserID/SiteKLPudu")
+            website = XMLX.GetSingleValue("//API/Site/KLPudu")
+        ElseIf issuance.siteTo.Contains("F02") Then
+            userID = XMLX.GetSingleValue("//UserID/SiteKlang")
+            website = XMLX.GetSingleValue("//API/Site/Klang")
+        ElseIf issuance.siteTo.Contains("F03") Then
+            userID = XMLX.GetSingleValue("//UserID/SiteMelaka")
+            website = XMLX.GetSingleValue("//API/Site/Melaka")
+        End If
+
+        Logger.WriteLine("userID : " + userID)
+        Logger.WriteLine("website : " + website)
 
         Try
 
@@ -88,16 +90,29 @@ Public Class JSONGenerator
 	            }}
             }}"
 
-            Dim api As New API()
-            Dim response = api.SendAPIReturnNull(str, website)
-            Dim parsedJSON = JToken.Parse(response)
-            Dim beautified = parsedJSON.ToString(Formatting.Indented)
-            Dim minified = parsedJSON.ToString(Formatting.None)
-            Logger.WriteLine(beautified)
-
-            Dim sql As New SQL
-            Dim query As String = $"DELETE FROM {GlobalDatabaseSchema}.TEMP_STOJOU WHERE VCRNUM_0 = '{issuance.invoiceNumber}'"
-            sql.ExecuteCustomQueryAndReturnValue(query)
+            Dim parsedJSON
+            Dim beautified
+            Dim minified
+            If XMLX.GetSingleValue("//API/SendOutAPI") = "1" Then
+                Try
+                    Dim api As New API()
+                    Dim response = api.SendAPIReturnNull(str, website)
+                    parsedJSON = JToken.Parse(response)
+                    beautified = parsedJSON.ToString(Formatting.Indented)
+                    minified = parsedJSON.ToString(Formatting.None)
+                    Logger.WriteLine(beautified)
+                    Dim sql As New SQL
+                    Dim query As String = $"DELETE FROM {GlobalDatabaseSchema}.TEMP_STOJOU WHERE VCRNUM_0 = '{issuance.invoiceNumber}'"
+                    sql.ExecuteCustomQueryAndReturnValue(query)
+                Catch ex As Exception
+                    Logger.WriteLine(ex.ToString & " | " & ex.Message)
+                End Try
+            Else
+                parsedJSON = JToken.Parse(str)
+                beautified = parsedJSON.ToString(Formatting.Indented)
+                minified = parsedJSON.ToString(Formatting.None)
+                Logger.WriteLine(beautified)
+            End If
         Catch ex As Exception
             Logger.WriteLine(ex.ToString & " " & ex.Message)
         End Try

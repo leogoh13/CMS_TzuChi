@@ -42,7 +42,7 @@ Public Class Logger
 
         Dim datetime = Date.Now.ToString("ddMMyyyy hh:mm:ss tt")
         Dim sw As StreamWriter = file.AppendText()
-        sw.WriteLine(str)
+        sw.WriteLine(datetime & " : " & str)
         sw.Close()
 
     End Sub
