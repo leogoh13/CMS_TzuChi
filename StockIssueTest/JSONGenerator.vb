@@ -43,7 +43,7 @@ Public Class JSONGenerator
         Console.WriteLine("EnpointA URL : " & website)
 
         Dim api As New API
-        Dim product As Product_EndpointA_Detail = api.SendAPIAndGetProductID(str, website).results.Item(0)
+        Dim product As Product_EndpointA_ToGetProductIDDetail = api.SendAPIAndGetProductID(str, website).results.Item(0)
         Return product.id
     End Function
 
