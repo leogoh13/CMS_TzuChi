@@ -35,6 +35,7 @@
 		<!-- 1 = Yes  -->
 		<!-- 0 = No   -->
 		<SendOutAPI>0</SendOutAPI>
+		<HashSumConstant>cx5ysSagei</HashSumConstant>
     </API>
 
 

@@ -5,16 +5,8 @@ Imports Microsoft.VisualBasic.Logging
 
 Module Module1
 
-    Public Const GlobalHashKey As String = "cx5ysSagei"
-    Public Const SQLURL As String = "data source=KLVM004\SAGEX3DATA;initial catalog=x3erpv12;user id=CMS;password=CMS@123;"
-    Public Const SQLURLSERVER As String = "server=10.7.111.106:50001,10.7.111.104:50018;data source=KLVM004\SAGEX3DATA;initial catalog=x3erpv12;user id=CMS;password=CMS@123;"
-    Public Const FILEPATH As String = "E:\Sage\CxSysTest\Process"
-    Public Const USER As String = "X3fcpudu"
+    Public GlobalHashKey As String = XMLX.GetSingleValue("//API/HashSumConstant")
     Public GlobalDatabaseSchema As String = XMLX.GetSingleValue("//database/databaseSchema")
-
-    Public myConn As SqlConnection
-    Public myCmd As SqlCommand
-    Public myReader As SqlDataReader
 
     Sub Main()
 
