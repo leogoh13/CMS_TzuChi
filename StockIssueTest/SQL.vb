@@ -48,7 +48,6 @@ Public Class SQL
             Logger.WriteLine(ex.ToString & " | " & ex.Message)
         End Try
     End Sub
-
     Public Sub ExecuteQueryReturnNull(query As String)
         Dim columns As New List(Of String)
         Dim rowList As New List(Of String)
@@ -72,7 +71,67 @@ Public Class SQL
             Logger.WriteLine(ex.ToString)
         End Try
     End Sub
+    Public Function GetNewProductList(ByRef obj As List(Of CMS_PRODUCT))
+        Dim query As String = $"SELECT
+	                            DRUGTYP_0 DRUGTYPE, 
+	                            LEFT(TSICOD_1,1) PHARMACEUTICALFORM,
+	                            CASE WHEN ITMDES2_0 <> '' 
+		                            THEN CONCAT(TRIM(ITMREF_0),' ',TRIM(ITMDES1_0), ' ', TRIM(ITMDES2_0))
+		                            ELSE CONCAT(TRIM(ITMREF_0),' ',TRIM(ITMDES1_0)) 
+	                            END TRADENAME,
+	                            CONCAT(TRIM(ITMDES1_0), ' ', TRIM(ITMDES2_0)) GENERICNAME,
+	                            DES4AXX_0 DISPLAYNAME,
+	                            PLMITMREF_0 PURPOSE,
+	                            ITMREF_0 ITEMNUMBER, 
+	                            STU_0 MEASUREMENT,
+	                            SSUSTUCOE_0 UNIT,
+	                            DRUGCLS_0 DRUGCLASS, 
+	                            PURBASPRI_0 SALESPRICE, 
+	                            SAUSTUCOE_0 COSTPRICE, 
+	                            MINAGEMTH_0 AGELIMIT, 
+	                            DOSAGE_0 DOSAGE, 
+	                            DEFAULTQTY_0 DEFAULTQTY,
+	                            INDICATION_0 INDICATIONGUIDE, 
+	                            DOSAGEG_0 DOSAGEGUIDE
+                            FROM {GlobalDatabaseSchema}.ITMMASTER
+                            WHERE ITMREF_0 = (SELECT TOP 1 ITMREF_0 FROM {GlobalDatabaseSchema}.TEMP_ITMMASTER GROUP BY ITMREF_0)"
+        'WHERE ITMREF_0 = (SELECT TOP 1 ITMREF_0 FROM {GlobalDatabaseSchema}.TEMP_ITMMASTER GROUP BY ITMREF_0)
 
+        Try
+            sqlConnection.Open()
+            sqlCommand = New SqlCommand(query, sqlConnection)
+
+            Using sqlDataReader = sqlCommand.ExecuteReader()
+                While sqlDataReader.Read
+                    Dim product As New CMS_PRODUCT With {
+                        .type = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("DRUGTYPE")),
+                        .form = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("PHARMACEUTICALFORM")),
+                        .trade_name = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("TRADENAME")),
+                        .generic_name = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("GENERICNAME")),
+                        .display_name = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("DISPLAYNAME")),
+                        .purpose = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("PURPOSE")),
+                        .itemReference = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("ITEMNUMBER")),
+                        .measurement = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("MEASUREMENT")),
+                        .unit = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("UNIT")),
+                        .itemClass = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("DRUGCLASS")),
+                        .sales_price = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("SALESPRICE")),
+                        .cost_price = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("COSTPRICE")),
+                        .age_limit = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("AGELIMIT")),
+                        .dosage = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("DOSAGE")),
+                        .default_qty = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("DEFAULTQTY")),
+                        .indic_guide = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("INDICATIONGUIDE")),
+                        .dosage_guide = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("DOSAGEGUIDE"))
+                    }
+                    obj.Add(product)
+                End While
+            End Using
+
+            sqlConnection.Close()
+        Catch ex As Exception
+            sqlConnection.Close()
+            Logger.WriteLine(ex.ToString & " | " & ex.Message)
+        End Try
+    End Function
     Public Function ExecuteQueryAndReturnValue(query As String) As List(Of String)
         Dim columns As New List(Of String)
         Dim rowList As New List(Of String)
@@ -100,7 +159,6 @@ Public Class SQL
 
         Return rowList
     End Function
-
     Public Function ExecuteQueryAndReturnValue(query As String, list As List(Of String)) As List(Of String)
         Dim rowList As New List(Of String)
 
@@ -127,7 +185,6 @@ Public Class SQL
 
         Return rowList
     End Function
-
     Public Function ExecuteCustomQueryAndReturnValue(query) As String
         Dim str As String = Nothing
         Dim value
@@ -150,10 +207,54 @@ Public Class SQL
 
         Return str
     End Function
-
     Public Function GetPaymentHeader() As String
         Dim temp As String = Nothing
         Return temp
     End Function
 
+    Public Sub GetPCSItems(ByRef obj As List(Of PCS_PRODUCT))
+        Dim query = $"
+                SELECT 
+	                ITMREF_0 ItemReference, 
+	                TSICOD_2 Model,
+	                ITMDES1_0 ItemDescription1,
+	                ITMDES2_0 ItemDescription2,
+	                ITMDES3_0 ItemDescription3,
+	                STU_0 PackageUOM,
+	                SSUSTUCOE_0 Unit,
+	                STU_0 StockUOM,
+	                XMINSTOCK_0 MinStock,
+	                XMAXSTOCK_0 MaxStock,
+	                PLMITMREF_0 Remark
+                FROM {GlobalDatabaseSchema}.ITMMASTER
+                WHERE TSICOD_1 = 'CNMED' AND UPDDATTIM_0 >= DATEADD(MINUTE, -1, GETDATE())"
+
+        Try
+            sqlConnection.Open()
+            sqlCommand = New SqlCommand(query, sqlConnection)
+
+            Using sqlDataReader = sqlCommand.ExecuteReader()
+                While sqlDataReader.Read
+                    Dim product As New PCS_PRODUCT With {
+                        .ItemReference = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("ItemReference")),
+                        .Model = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("Model")),
+                        .ItemDescription1 = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("ItemDescription1")),
+                        .ItemDescription2 = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("ItemDescription2")),
+                        .ItemDescription3 = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("ItemDescription3")),
+                        .PackageUOM = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("PackageUOM")),
+                        .Unit = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("Unit")),
+                        .StockUOM = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("StockUOM")),
+                    .MinStock = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("MinStock")),
+                    .MaxStock = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("MaxStock")),
+                    .Remark = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("Remark"))
+                    }
+                    obj.Add(product)
+                End While
+            End Using
+            sqlConnection.Close()
+        Catch ex As Exception
+            sqlConnection.Close()
+            Logger.WriteLine(ex.ToString & " | " & ex.Message)
+        End Try
+    End Sub
 End Class
