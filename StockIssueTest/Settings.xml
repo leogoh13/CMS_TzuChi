@@ -8,7 +8,7 @@
         <databaseName>x3erpv12</databaseName>
         <dbUserID>CMS</dbUserID>
         <dbPassword>CMS@123</dbPassword>
-        <databaseSchema>YTCPROD</databaseSchema>
+        <databaseSchema>YTCUAT4</databaseSchema>
     </database>
 
     <RDP>
@@ -18,7 +18,7 @@
         <Password>Cms@1234</Password>
     </RDP>
 
-	<UserID>
+	<!--<UserID>
         <SiteKLPudu>X3fcpudu</SiteKLPudu>
         <SiteKlang>X3fcklang</SiteKlang>
         <SiteMelaka>X3fcmelaka</SiteMelaka>
@@ -30,29 +30,45 @@
             <Klang>https://tzuchiklang.dyndns.org/clinicsysmini/sage_points.php</Klang>
             <Melaka>https://tzuchimelaka.dyndns.org/clinicsysmini/sage_points.php</Melaka>
         </Site>
-		
-		<!-- Send Out API JSON  -->
-		<!-- 1 = Yes  -->
-		<!-- 0 = No   -->
-		<SendOutAPI>0</SendOutAPI>
+        
+        --><!-- Send Out API JSON  --><!--
+        --><!-- 1 = Yes  --><!--
+        --><!-- 0 = No   --><!--
+        <SendOutAPI>1</SendOutAPI>
+    </API>-->
+
+
+    <UserID>
+        <SiteKLPudu>tzuchitest</SiteKLPudu>
+        <SiteKlang>tzuchitest</SiteKlang>
+        <SiteMelaka>tzuchitest</SiteMelaka>
+    </UserID>
+
+    <API>
+        <Site>
+            <KLPudu>https://tzuchitest.dyndns.org/clinicsysmini/sage_points.php</KLPudu>
+            <Klang></Klang>
+            <Melaka></Melaka>
+        </Site>
+        <SendOutAPI>1</SendOutAPI>
     </API>
-
-
-	<!--<UserID>
-		<SiteKLPudu>tzuchitest</SiteKLPudu>
-		<SiteKlang>tzuchitest</SiteKlang>
-		<SiteMelaka>tzuchitest</SiteMelaka>
-	</UserID>
-
-	<API>
-		<Site>
-			<KLPudu>https://tzuchitest.dyndns.org/clinicsysmini/sage_points.php</KLPudu>
-			<Klang></Klang>
-			<Melaka></Melaka>
-		</Site>
-	</API>-->
-	
-	<CMS>
-		<VendorID>31</VendorID>
-	</CMS>
+    
+    <CMS>
+        <VendorID>31</VendorID>
+    </CMS>
 </root>
+
+
+
+<!--
+
+SELECT * FROM YTCPROD.TEMP_STOJOU
+SELECT VCRNUM_0, AMTORD_0, QTYPCU_0, STOFCY_0, FCYNAM_0,TRSTYP_0, B.ACCCOD_0, USR_0, NOMUSR_0
+FROM YTCPROD.STOJOU A
+LEFT JOIN YTCPROD.FACILITY B ON STOFCY_0 = FCY_0
+LEFT JOIN YTCPROD.AUTILIS C ON USR_0 = A.CREUSR_0
+WHERE VCRNUM_0 IN ('STIT32F03-230000008')
+
+
+
+-->

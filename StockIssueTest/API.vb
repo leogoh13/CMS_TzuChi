@@ -5,28 +5,35 @@ Imports Newtonsoft.Json
 
 Public Class API
     Public Function SendAPIReturnNull(body As String, website As String) As String
-        Dim response As String
+        Dim response As String = ""
         Dim request As WebRequest
         Dim jsonDataBytes = Encoding.Default.GetBytes(body)
 
-        request = WebRequest.Create(website)
-        request.ContentLength = jsonDataBytes.Length
-        request.ContentType = "application/json"
-        request.Method = "POST"
+        Try
 
-        Using requestStream = request.GetRequestStream
-            requestStream.Write(jsonDataBytes, 0, jsonDataBytes.Length)
-            requestStream.Close()
+            request = WebRequest.Create(website)
+            request.ContentLength = jsonDataBytes.Length
+            request.ContentType = "application/json"
+            request.Method = "POST"
 
-            Using responseStream = request.GetResponse.GetResponseStream
-                Using reader As New StreamReader(responseStream)
-                    response = reader.ReadToEnd()
+            If XMLX.GetSingleValue("//API/SendOutAPI") = "1" Then
+                Using requestStream = request.GetRequestStream
+                    requestStream.Write(jsonDataBytes, 0, jsonDataBytes.Length)
+                    requestStream.Close()
+
+                    Using responseStream = request.GetResponse.GetResponseStream
+                        Using reader As New StreamReader(responseStream)
+                            response = reader.ReadToEnd()
+                        End Using
+                    End Using
+
+                    Logger.WriteLine("request : " + body)
+                    Logger.WriteLine("response : " + response)
                 End Using
-            End Using
-
-            Logger.WriteLine("request : " + body)
-            Logger.WriteLine("response : " + response)
-        End Using
+            End If
+        Catch ex As Exception
+            Logger.WriteLine(ex.ToString & " " & ex.Message)
+        End Try
         Return response
     End Function
 
@@ -45,17 +52,20 @@ Public Class API
             request.ContentType = "application/json"
             request.Method = "POST"
 
-            Using requestStream = request.GetRequestStream
-                requestStream.Write(jsonDataBytes, 0, jsonDataBytes.Length)
-                requestStream.Close()
-                Console.WriteLine("responseStream")
-                Using responseStream = request.GetResponse.GetResponseStream
-                    Using reader As New StreamReader(responseStream)
-                        response = reader.ReadToEnd()
-                    End Using
-                End Using
+            If XMLX.GetSingleValue("//API/SendOutAPI") = "1" Then
 
-            End Using
+                Using requestStream = request.GetRequestStream
+                    requestStream.Write(jsonDataBytes, 0, jsonDataBytes.Length)
+                    requestStream.Close()
+                    Console.WriteLine("responseStream")
+                    Using responseStream = request.GetResponse.GetResponseStream
+                        Using reader As New StreamReader(responseStream)
+                            response = reader.ReadToEnd()
+                        End Using
+                    End Using
+
+                End Using
+            End If
 
             Logger.WriteLine("Product ID response : " + response)
         Catch ex As Exception
