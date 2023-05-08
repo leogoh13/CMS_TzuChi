@@ -56,6 +56,17 @@
     <CMS>
         <VendorID>31</VendorID>
     </CMS>
+
+	<PCS>
+		<Issuance>
+			<FileDestinationPath></FileDestinationPath>
+		</Issuance>
+		<Product>
+			<FileDestinationPath></FileDestinationPath>
+		</Product>
+	</PCS>
+	
+	
 </root>
 
 
