@@ -8,7 +8,7 @@
         <databaseName>x3erpv12</databaseName>
         <dbUserID>CMS</dbUserID>
         <dbPassword>CMS@123</dbPassword>
-        <databaseSchema>YTCUAT4</databaseSchema>
+        <databaseSchema>YTCPROD</databaseSchema>
     </database>
 
     <RDP>
@@ -18,10 +18,10 @@
         <Password>Cms@1234</Password>
     </RDP>
 
-	<!--<UserID>
+	<UserID>
         <SiteKLPudu>X3fcpudu</SiteKLPudu>
         <SiteKlang>X3fcklang</SiteKlang>
-        <SiteMelaka>X3fcmelaka</SiteMelaka>
+        <SiteMelaka>X3fcmlk</SiteMelaka>
     </UserID>
 
 	<API>
@@ -31,14 +31,14 @@
             <Melaka>https://tzuchimelaka.dyndns.org/clinicsysmini/sage_points.php</Melaka>
         </Site>
         
-        --><!-- Send Out API JSON  --><!--
-        --><!-- 1 = Yes  --><!--
-        --><!-- 0 = No   --><!--
+         Send Out API JSON  
+         1 = Yes  
+         0 = No   
         <SendOutAPI>1</SendOutAPI>
-    </API>-->
+    </API>
 
 
-    <UserID>
+    <!--<UserID>
         <SiteKLPudu>tzuchitest</SiteKLPudu>
         <SiteKlang>tzuchitest</SiteKlang>
         <SiteMelaka>tzuchitest</SiteMelaka>
@@ -51,7 +51,7 @@
             <Melaka></Melaka>
         </Site>
         <SendOutAPI>1</SendOutAPI>
-    </API>
+    </API>-->
     
     <CMS>
         <VendorID>31</VendorID>
