@@ -1,10 +1,10 @@
 ﻿Imports System.Data.SqlClient
 
 Public Class SQL
-    Dim sqlConnStr As String
+    ReadOnly sqlConnStr As String
     Dim sqlCommand As SqlCommand
     Dim sqlDataReader As SqlDataReader
-    Dim sqlConnection As SqlConnection
+    ReadOnly sqlConnection As SqlConnection
 
 
     Public Sub New()
@@ -71,7 +71,7 @@ Public Class SQL
             Logger.WriteLine(ex.ToString)
         End Try
     End Sub
-    Public Function GetNewProductList(ByRef obj As List(Of CMS_PRODUCT))
+    Public Sub GetNewProductList(ByRef obj As List(Of CMS_PRODUCT))
         Dim query As String = $"SELECT
 	                            DRUGTYP_0 DRUGTYPE, 
 	                            LEFT(TSICOD_1,1) PHARMACEUTICALFORM,
@@ -131,7 +131,7 @@ Public Class SQL
             sqlConnection.Close()
             Logger.WriteLine(ex.ToString & " | " & ex.Message)
         End Try
-    End Function
+    End Sub
     Public Function ExecuteQueryAndReturnValue(query As String) As List(Of String)
         Dim columns As New List(Of String)
         Dim rowList As New List(Of String)
@@ -187,7 +187,6 @@ Public Class SQL
     End Function
     Public Function ExecuteCustomQueryAndReturnValue(query) As String
         Dim str As String = Nothing
-        Dim value
         Try
             sqlConnection.Open()
             sqlCommand = New SqlCommand(query, sqlConnection)
@@ -257,4 +256,54 @@ Public Class SQL
             Logger.WriteLine(ex.ToString & " | " & ex.Message)
         End Try
     End Sub
+
+    Public Sub GetPCSIssuance(ByRef obj)
+        Dim query As String = $"
+                        SELECT 
+	                        '' SUPPLIER_CODE,
+	                        VCRNUM_0 INVOICE_NUMBER,
+	                        UPDDATTIM_0 INVOICE_DATE,
+	                        LOT_0 PO_NO,
+	                        VARVAL_0 TOTAL_BILL_COST,
+	                        ITMREF_0 ITEM_CODE,
+	                        QTYSTU_0 * -1 QTY, 
+	                        ( SELECT SUM(AMTORD_0 * -1) FROM YTCPROD.STOJOU A WHERE A.VCRNUM_0 = VCRNUM_0) COST_PRICE_PER_UNIT, 
+	                        0 DISCOUNT,
+	                        0 DISCOUNT_RM,
+	                        AMTORD_0 * -1 GROSS_AMOUNT,
+	                        SHLDAT_0 EXPIRY_DATE,
+	                        '-' REMARKS
+                        FROM YTCPROD.STOJOU 
+                        WHERE VCRNUM_0 = ( SELECT VCRNUM_0 FROM YTCPROD.TEMP_STOJOU_PCS GROUP BY VCRNUM_0) AND TRSTYP_0 = 2"
+
+        Try
+            sqlConnection.Open()
+            sqlCommand = New SqlCommand(query, sqlConnection)
+
+            Using sqlDataReader = sqlCommand.ExecuteReader()
+                While sqlDataReader.Read
+                    Dim issuance As New PCS_ISSUANCE With {
+                        .supplierCode = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("SUPPLIER_CODE")),
+                        .invoiceNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("INVOICE_NUMBER")),
+                        .invoiceDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("INVOICE_DATE")),
+                        .purchaseOrderNo = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("PO_NO")),
+                        .totalBillCost = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("TOTAL_BILL_COST")),
+                        .itemCode = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("ITEM_CODE")),
+                        .qty = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("QTY")),
+                        .costPricePerUnit = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("COST_PRICE_PER_UNIT")),
+                        .discount = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("DISCOUNT")),
+                        .discountRM = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("DISCOUNT_RM")),
+                        .grossAmount = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("GROSS_AMOUNT")),
+                        .expiryDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("EXPIRY_DATE")),
+                        .remarks = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("REMARKS"))
+                    }
+                    obj.Add(issuance)
+                End While
+            End Using
+            sqlConnection.Close()
+        Catch ex As Exception
+
+        End Try
+    End Sub
+
 End Class

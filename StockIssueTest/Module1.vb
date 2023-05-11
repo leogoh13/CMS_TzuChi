@@ -18,15 +18,16 @@ Module Module1
 
     Sub Main()
 
+        Logger.WriteLine("***********************************************************************************************************")
+
         Dim impersonator As New clsAuthenticator
         Dim RDP_Directory As String = XMLX.GetSingleValue("//RDP/Directory")
         Dim RDP_Domain As String = XMLX.GetSingleValue("//RDP/Domain")
         Dim RDP_Username As String = XMLX.GetSingleValue("//RDP/Username")
         Dim RDP_Password As String = XMLX.GetSingleValue("//RDP/Password")
         Dim json As New JSONGenerator()
-        Dim retVal As String = ""
 
-        retVal = json.SaveProductID_EndpointC()
+        Dim retVal As String = json.SaveProductID_EndpointC()
         retVal = json.GetIssuance_EndpointD()
         Logger.WriteLine(retVal)
     End Sub
@@ -38,14 +39,20 @@ Public Class CMS_PCS
     Public Sub CreateOrUpdateProduct()
         Dim sql As New SQL()
         Dim products As New List(Of PCS_PRODUCT)
+        Dim dt As String = DateTime.Now.ToString("yyyy-MM-dd-HH-mm")
+        Dim destinationPath As String = XMLX.GetSingleValue("")
+
+
         sql.GetPCSItems(products)
+
+
 
         For Each itm In products
 
             ' Create strings to be written into the PCS files
-            Dim pcsCreateString = $"""CREATE""|""{itm.ItemReference}""|""{itm.ItemDescription1}""|""{itm.ItemDescription2}""|""{itm.ItemDescription3}""|""{itm.PackageUOM}""|{itm.Unit}|""{itm.StockUOM}""|{itm.MinStock}|{itm.MaxStock}|""{itm.Remark}"""
+            Dim pcsCreate As String = $"""CREATE""|""{itm.ItemReference}""|""{itm.ItemDescription1}""|""{itm.ItemDescription2}""|""{itm.ItemDescription3}""|""{itm.PackageUOM}""|{itm.Unit}|""{itm.StockUOM}""|{itm.MinStock}|{itm.MaxStock}|""{itm.Remark}"""
 
-            Dim pcsUpdateString = $"""UPDATE"
+
 
         Next
 
@@ -53,7 +60,55 @@ Public Class CMS_PCS
 
     Public Sub Issuance()
 
+        Dim sql As New SQL()
+        Dim issuances As New List(Of PCS_ISSUANCE)
+        Dim dt As String = DateTime.Now.ToString("yyyy-MM-dd-HH-mm")
+        Dim destinationPath As String = XMLX.GetSingleValue("")
+
+        sql.GetPCSIssuance(issuances)
+
+        For Each issue In issuances
+
+            Dim remark As String = "-"
+            Dim action As String
+            If issue.qty > 0 Then
+                action = "CREATE"
+            Else
+                action = "REVERSE"
+            End If
+
+            Dim pcsIssuance As String =
+                $"""{action}""|""{issue.supplierCode}""|""{issue.invoiceNumber}""|{issue.invoiceDate}|{issue.purchaseOrderNo}|{issue.totalBillCost:0.00}|""{issue.itemCode}""|" &
+                $"{issue.qty:0.00}|{issue.costPricePerUnit:0.000}|{issue.discount:0}|{issue.discountRM:0.000}|{issue.grossAmount:0.000}|{issue.expiryDate:dd/MM/yyyy}|""{remark}"""
+
+
+
+
+
+
+        Next
+
+
     End Sub
+End Class
+
+Public Class PCS_ISSUANCE
+
+    Public action As String
+    Public supplierCode As String
+    Public invoiceNumber As String
+    Public invoiceDate As DateTime
+    Public purchaseOrderNo As Integer
+    Public totalBillCost As Decimal
+    Public itemCode As String
+    Public qty As Decimal
+    Public costPricePerUnit As Decimal
+    Public discount As Decimal
+    Public discountRM As Decimal
+    Public grossAmount As Decimal
+    Public expiryDate As Date
+    Public remarks As String
+
 End Class
 
 Public Class PCS_PRODUCT
@@ -71,14 +126,14 @@ Public Class PCS_PRODUCT
 End Class
 
 Public Class Logger
-    Shared filepath As String = $"{My.Application.Info.DirectoryPath}\Logs\Log_{Date.UtcNow.ToString("yyyyMMdd")}.log"
-    Shared file As New FileInfo(filepath)
+    Shared ReadOnly filepath As String = $"{My.Application.Info.DirectoryPath}\Logs\Log_{Date.UtcNow:yyyyMMdd}.log"
+    Shared ReadOnly file As New FileInfo(filepath)
     Public Shared Sub WriteLine(str As String)
         If Not file.Exists() Then
             file.Create().Close()
         End If
 
-        Dim datetime = Date.Now.ToString("ddMMyyyy hh:mm:ss tt")
+        Dim datetime = Date.Now.ToString("dd-MM-yyyy hh:mm:ss tt")
         Dim sw As StreamWriter = file.AppendText()
         sw.WriteLine(datetime & " : " & str)
         sw.Close()

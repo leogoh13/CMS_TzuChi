@@ -4,13 +4,15 @@ Imports Newtonsoft.Json.Linq
 Public Class JSONGenerator
 
     Public Function GetProductID_EndpointA(item As String, site As String) As String
-        Dim columns As New List(Of String)
-        columns.Add("ITEM")
-        columns.Add("DESC1")
-        columns.Add("DESC2")
+        Logger.WriteLine($"GetProductID_EndpointA : {item} - {site}")
+        Dim columns As New List(Of String) From {
+            "ITEM",
+            "DESC1",
+            "DESC2"
+        }
 
         Dim sql As New SQL()
-        Dim website As String
+        Dim website As String = ""
         Dim query = $"SELECT ITMREF_0 ITEM, ITMDES1_0 DESC1, ITMDES2_0 DESC2 FROM {GlobalDatabaseSchema}.ITMMASTER WHERE ITMREF_0 = '{item}'"
         Dim retVal = sql.ExecuteQueryAndReturnValue(query, columns)
         Dim userID = Nothing
@@ -26,6 +28,9 @@ Public Class JSONGenerator
             website = XMLX.GetSingleValue("//API/Site/Melaka")
         End If
 
+        Logger.WriteLine($"GetProductID_EndpointA userID : {userID}")
+        Logger.WriteLine($"GetProductID_EndpointA website : {website}")
+
         Dim itemName = retVal(0).Trim & " " & retVal(1).Trim '& " " & retVal(2).Trim
         Dim hash = Hash_SHA1.HashSHA1($"{userID}_{itemName.Trim}_{GlobalHashKey}")
 
@@ -36,12 +41,15 @@ Public Class JSONGenerator
             ""itemName"" : ""{itemName}""
         }}"
 
-        Console.WriteLine("EnpointA JSON : " & str)
-        Console.WriteLine("EnpointA URL : " & website)
-
         Dim api As New API
-        Dim product As Product_EndpointA_ToGetProductIDDetail = api.SendAPIAndGetProductID(str, website).results.Item(0)
-        Return product.id
+        Dim productIDHeader = api.SendAPIAndGetProductID(str, website)
+        If productIDHeader Is Nothing Then
+            Return "0"
+        Else
+            Dim product As Product_EndpointA_ToGetProductIDDetail = productIDHeader.results.Item(0)
+            Return product.id
+        End If
+
     End Function
 
     Public Function GetIssuance_EndpointD() As String
@@ -76,10 +84,10 @@ Public Class JSONGenerator
 	            ""userId"" : ""{userID}"",
 	            ""hash"" : ""{Hash_SHA1.HashSHA1($"{userID}_{issuance.invoiceNumber}_{GlobalHashKey}")}"",
 	            ""new_stock"" : {{
-		            ""date"" : ""{Convert.ToDateTime(issuance.updateDate).ToString("yyyy-MM-dd")}"",
+		            ""date"" : ""{Convert.ToDateTime(issuance.updateDate):yyyy-MM-dd}"",
 		            ""vendor_id"" : 31,
 		            ""invoice_no"" : ""{issuance.invoiceNumber}"",
-		            ""stocks"" : [{GetIssuance_Items(issuance.invoiceNumber)}]
+		            ""stocks"" : [{GetIssuance_Items()}]
 	            }}
             }}"
 
@@ -112,7 +120,7 @@ Public Class JSONGenerator
         Return ""
     End Function
 
-    Public Function GetIssuance_Items(invoiceNumber) As String
+    Public Function GetIssuance_Items() As String
 
         Dim sql As New SQL()
         Dim str As String = ""
@@ -130,7 +138,7 @@ Public Class JSONGenerator
            $"{{
         	""itemId"" : {GetProductID_EndpointA(issue.itemNumber, issue.siteTo)},
         	""qty"" : {issue.quantity},
-        	""expiry"" : ""{Convert.ToDateTime(issue.expirationDate).ToString("yyyy-MM-dd")}"",
+        	""expiry"" : ""{Convert.ToDateTime(issue.expirationDate):yyyy-MM-dd}"",
         	""cost"" : {issue.cost}
             }},"
         Next
@@ -154,50 +162,38 @@ Public Class JSONGenerator
     End Function
 
     Public Function SaveProductID_EndpointC() As String
-        Logger.WriteLine("SaveProductID_EndpointC Starts")
+
         ' Check the TEMP_ITMMASTER table for pending records to send to CxSYS
         Dim sql As New SQL
         Dim products As New List(Of CMS_PRODUCT)
+
+        'Purposely set to these to trigger to all sites
         Dim PuduSite As String = "F01"
         Dim KlangSite As String = "F02"
         Dim MelakaSite As String = "F03"
 
-        Dim fPuduItemExist As Boolean = False
-        Dim fKlangItemExist As Boolean = False
-        Dim fMelakaItemExist As Boolean = False
         Dim itemSyncedInCxSYS As Boolean = False
         sql.GetNewProductList(products)
 
 
         ' Double check in CxSYS whether this record has already created or not
         For Each item In products
-            Logger.WriteLine("item.itemReference : " & item.itemReference)
 
-            'If GetProductID_EndpointA(item.itemReference, PuduSite) <> "" Then
-            '    fPuduItemExist = True
-            'End If
+            Logger.WriteLine("Pudu : " & item.itemReference)
+            Dim puduItemID = GetProductID_EndpointA(item.itemReference, PuduSite)
+            Logger.WriteLine("Klang : " & item.itemReference)
+            Dim klangItemID = GetProductID_EndpointA(item.itemReference, KlangSite)
+            Logger.WriteLine("Melaka : " & item.itemReference)
+            Dim melakaItemID = GetProductID_EndpointA(item.itemReference, MelakaSite)
 
-            'If GetProductID_EndpointA(item.itemReference, KlangSite) <> "" Then
-            '    fKlangItemExist = True
-            'End If
+            If puduItemID <> "0" And klangItemID <> "0" And melakaItemID <> "0" Then
+                Return ""
+            End If
 
-            'If GetProductID_EndpointA(item.itemReference, MelakaSite) <> "" Then
-            '    fMelakaItemExist = True
-            'End If
-
-            'If fPuduItemExist And fKlangItemExist And fMelakaItemExist Then
-            'itemSyncedInCxSYS = True
-            'End If
-
-            ' If not, get the item's necessary details and send to all sites.
             If Not itemSyncedInCxSYS Then
 
-                Dim userID As String
-                Dim website As String
-                Dim hash As String
                 Dim api As New API
                 Dim cxsysClass As String
-                Dim json As String
 
                 If item.itemClass = "1" Then
                     cxsysClass = "Normal"
@@ -221,110 +217,112 @@ Public Class JSONGenerator
                 End If
 
 
-                userID = XMLX.GetSingleValue("//UserID/SiteKLPudu")
-                website = XMLX.GetSingleValue("//API/Site/KLPudu")
-                hash = Hash_SHA1.HashSHA1($"{userID}_{item.trade_name}_{GlobalHashKey}")
-                Logger.WriteLine($"{userID}_{item.trade_name}_{GlobalHashKey}")
-                json = $"
+                Dim puduUserID As String = XMLX.GetSingleValue("//UserID/SiteKLPudu")
+                Dim puduWebsite As String = XMLX.GetSingleValue("//API/Site/KLPudu")
+
+                Dim klangUserID As String = XMLX.GetSingleValue("//UserID/SiteKlang")
+                Dim klangWebsite As String = XMLX.GetSingleValue("//API/Site/Klang")
+
+                Dim melakaUserID As String = XMLX.GetSingleValue("//UserID/SiteMelaka")
+                Dim melakaWebsite As String = XMLX.GetSingleValue("//API/Site/Melaka")
+
+                Dim puduHash = Hash_SHA1.HashSHA1($"{puduUserID}_{item.trade_name}_{GlobalHashKey}")
+                Dim klangHash = Hash_SHA1.HashSHA1($"{klangUserID}_{item.trade_name}_{GlobalHashKey}")
+                Dim melakaHash = Hash_SHA1.HashSHA1($"{melakaUserID}_{item.trade_name}_{GlobalHashKey}")
+
+                Logger.WriteLine($"{puduUserID}_{item.trade_name}_{GlobalHashKey}")
+                Logger.WriteLine($"{klangUserID}_{item.trade_name}_{GlobalHashKey}")
+                Logger.WriteLine($"{melakaUserID}_{item.trade_name}_{GlobalHashKey}")
+
+                Dim puduJSON As String = $"
                         {{
-                            ""userId"" : ""{userID}"",
-                            ""hash"" : ""{hash}"",
+                            ""userId"" : ""{puduUserID}"",
+                            ""hash"" : ""{puduHash}"",
                             ""new_item"" : {{
-	                            ""type"" : ""{cxsysType}"",
-	                            ""form"" : ""{item.form}"",
-	                            ""trade_name"" : ""{item.trade_name}"",
-	                            ""generic_name"" : ""{item.generic_name}"",
-	                            ""display_name"" : ""{item.display_name}"",
-	                            ""purpose"" : ""{item.purpose}"",
-	                            ""measurement"" : ""{item.measurement}"",
-	                            ""unit"" : {item.unit},
-	                            ""class"" : ""{cxsysClass}"",
-	                            ""sales_price"" : {item.sales_price},
-	                            ""cost_price"" : {item.cost_price},
-	                            ""age_limit"" : {item.age_limit},
-	                            ""dosage"" : ""{item.dosage}"",
-	                            ""default_qty"" : {item.default_qty},
-	                            ""indic_guide"" : ""{item.indic_guide}"",
-	                            ""dosage_guide"" : ""{item.dosage_guide}""
-	                        }}
+                             ""type"" : ""{cxsysType}"",
+                             ""form"" : ""{item.form}"",
+                             ""trade_name"" : ""{item.trade_name}"",
+                             ""generic_name"" : ""{item.generic_name}"",
+                             ""display_name"" : ""{item.display_name}"",
+                             ""purpose"" : ""{item.purpose}"",
+                             ""measurement"" : ""{item.measurement}"",
+                             ""unit"" : {item.unit},
+                             ""class"" : ""{cxsysClass}"",
+                             ""sales_price"" : {item.sales_price},
+                             ""cost_price"" : {item.cost_price},
+                             ""age_limit"" : {item.age_limit},
+                             ""dosage"" : ""{item.dosage}"",
+                             ""default_qty"" : {item.default_qty},
+                             ""indic_guide"" : ""{item.indic_guide}"",
+                             ""dosage_guide"" : ""{item.dosage_guide}""
+                         }}
+                        }}"
+                Dim klangJSON As String = $"
+                        {{
+                            ""userId"" : ""{klangUserID}"",
+                            ""hash"" : ""{klangHash}"",
+                            ""new_item"" : {{
+                             ""type"" : ""{cxsysType}"",
+                             ""form"" : ""{item.form}"",
+                             ""trade_name"" : ""{item.trade_name}"",
+                             ""generic_name"" : ""{item.generic_name}"",
+                             ""display_name"" : ""{item.display_name}"",
+                             ""purpose"" : ""{item.purpose}"",
+                             ""measurement"" : ""{item.measurement}"",
+                             ""unit"" : {item.unit},
+                             ""class"" : ""{cxsysClass}"",
+                             ""sales_price"" : {item.sales_price},
+                             ""cost_price"" : {item.cost_price},
+                             ""age_limit"" : {item.age_limit},
+                             ""dosage"" : ""{item.dosage}"",
+                             ""default_qty"" : {item.default_qty},
+                             ""indic_guide"" : ""{item.indic_guide}"",
+                             ""dosage_guide"" : ""{item.dosage_guide}""
+                         }}
+                        }}"
+                Dim melakaJSON As String = $"
+                        {{
+                            ""userId"" : ""{melakaUserID}"",
+                            ""hash"" : ""{melakaHash}"",
+                            ""new_item"" : {{
+                             ""type"" : ""{cxsysType}"",
+                             ""form"" : ""{item.form}"",
+                             ""trade_name"" : ""{item.trade_name}"",
+                             ""generic_name"" : ""{item.generic_name}"",
+                             ""display_name"" : ""{item.display_name}"",
+                             ""purpose"" : ""{item.purpose}"",
+                             ""measurement"" : ""{item.measurement}"",
+                             ""unit"" : {item.unit},
+                             ""class"" : ""{cxsysClass}"",
+                             ""sales_price"" : {item.sales_price},
+                             ""cost_price"" : {item.cost_price},
+                             ""age_limit"" : {item.age_limit},
+                             ""dosage"" : ""{item.dosage}"",
+                             ""default_qty"" : {item.default_qty},
+                             ""indic_guide"" : ""{item.indic_guide}"",
+                             ""dosage_guide"" : ""{item.dosage_guide}""
+                         }}
                         }}"
 
                 Try
-                    Dim response = api.SendAPIReturnNull(json, website)
-                    Dim parsedJSON = JToken.Parse(response)
-                    Dim beautified = parsedJSON.ToString(Formatting.Indented)
-                    Dim minified = parsedJSON.ToString(Formatting.None)
-                    Logger.WriteLine(beautified)
+                    ' PUDU
+                    Logger.WriteLine(JToken.Parse(api.SendAPIReturnNull(puduJSON, puduWebsite)).ToString(Formatting.Indented))
+
+                    ' KLANG
+                    Logger.WriteLine(JToken.Parse(api.SendAPIReturnNull(klangJSON, klangWebsite)).ToString(Formatting.Indented))
+
+                    ' MELAKA
+                    Logger.WriteLine(JToken.Parse(api.SendAPIReturnNull(melakaJSON, melakaWebsite)).ToString(Formatting.Indented))
+
+                    ' Remove the item from the table
                     Dim query As String = $"DELETE FROM {GlobalDatabaseSchema}.TEMP_ITMMASTER WHERE ITMREF_0 = '{item.itemReference}'"
                     sql.ExecuteCustomQueryAndReturnValue(query)
                 Catch ex As Exception
                     Logger.WriteLine(ex.ToString & " " & ex.Message)
                 End Try
 
-
-
-                'userID = XMLX.GetSingleValue("//UserID/SiteKlang")
-                'website = XMLX.GetSingleValue("//API/Site/Klang")
-                'hash = Hash_SHA1.HashSHA1($"{userID}_{item.trade_name}_{GlobalHashKey}")
-                'json = $"
-                '        {{
-                '            ""userId"" : ""{userID}"",
-                '            ""hash"" : ""{hash}"",
-                '            ""new_item"" : {{
-                '             ""type"" : ""{cxsysType}"",
-                '             ""form"" : ""{item.form}"",
-                '             ""trade_name"" : ""{item.trade_name}"",
-                '             ""generic_name"" : ""{item.generic_name}"",
-                '             ""display_name"" : ""{item.display_name}"",
-                '             ""purpose"" : ""{item.purpose}"",
-                '             ""measurement"" : ""{item.measurement}"",
-                '             ""unit"" : {item.unit},
-                '             ""class"" : ""{cxsysClass}"",
-                '             ""sales_price"" : {item.sales_price},
-                '             ""cost_price"" : {item.cost_price},
-                '             ""age_limit"" : {item.age_limit},
-                '             ""dosage"" : ""{item.dosage}"",
-                '             ""default_qty"" : {item.default_qty},
-                '             ""indic_guide"" : ""{item.indic_guide}"",
-                '             ""dosage_guide"" : ""{item.dosage_guide}""
-                '         }}
-                '        }}"
-                'api.SendAPIReturnNull(json, website)
-
-
-
-                'userID = XMLX.GetSingleValue("//UserID/SiteMelaka")
-                'website = XMLX.GetSingleValue("//API/Site/Melaka")
-                'hash = Hash_SHA1.HashSHA1($"{userID}_{item.trade_name}_{GlobalHashKey}")
-                'json = $"
-                '        {{
-                '            ""userId"" : ""{userID}"",
-                '            ""hash"" : ""{hash}"",
-                '            ""new_item"" : {{
-                '             ""type"" : ""{cxsysType}"",
-                '             ""form"" : ""{item.form}"",
-                '             ""trade_name"" : ""{item.trade_name}"",
-                '             ""generic_name"" : ""{item.generic_name}"",
-                '             ""display_name"" : ""{item.display_name}"",
-                '             ""purpose"" : ""{item.purpose}"",
-                '             ""measurement"" : ""{item.measurement}"",
-                '             ""unit"" : {item.unit},
-                '             ""class"" : ""{cxsysClass}"",
-                '             ""sales_price"" : {item.sales_price},
-                '             ""cost_price"" : {item.cost_price},
-                '             ""age_limit"" : {item.age_limit},
-                '             ""dosage"" : ""{item.dosage}"",
-                '             ""default_qty"" : {item.default_qty},
-                '             ""indic_guide"" : ""{item.indic_guide}"",
-                '             ""dosage_guide"" : ""{item.dosage_guide}""
-                '         }}
-                '        }}"
-                'api.SendAPIReturnNull(json, website)
-
             End If
-
         Next
-
 
         Return ""
 

@@ -39,14 +39,13 @@ Public Class API
 
     Public Function SendAPIAndGetProductID(body As String, website As String) As Product_EndpointA_ToGetProductIDHeader
         Console.WriteLine("SendAPIAndGetProductID")
-        Dim response As String
+        Dim response As String = ""
         Dim request As WebRequest
         Dim jsonDataBytes = Encoding.Default.GetBytes(body)
-        Dim product As Product_EndpointA_ToGetProductIDHeader
+        Dim product As Product_EndpointA_ToGetProductIDHeader = Nothing
         Logger.WriteLine("Product ID request : " + body)
 
         Try
-            Console.WriteLine("Try")
             request = WebRequest.Create(website)
             request.ContentLength = jsonDataBytes.Length
             request.ContentType = "application/json"
@@ -57,7 +56,6 @@ Public Class API
                 Using requestStream = request.GetRequestStream
                     requestStream.Write(jsonDataBytes, 0, jsonDataBytes.Length)
                     requestStream.Close()
-                    Console.WriteLine("responseStream")
                     Using responseStream = request.GetResponse.GetResponseStream
                         Using reader As New StreamReader(responseStream)
                             response = reader.ReadToEnd()
@@ -68,10 +66,16 @@ Public Class API
             End If
 
             Logger.WriteLine("Product ID response : " + response)
+            product = JsonConvert.DeserializeObject(Of Product_EndpointA_ToGetProductIDHeader)(response)
+            If product.results.Count <= 0 Then
+                Return Nothing
+            Else
+                Return product
+            End If
         Catch ex As Exception
             Logger.WriteLine(ex.ToString & " " & ex.Message)
         End Try
-        product = JsonConvert.DeserializeObject(Of Product_EndpointA_ToGetProductIDHeader)(response)
+
         Return product
     End Function
 
