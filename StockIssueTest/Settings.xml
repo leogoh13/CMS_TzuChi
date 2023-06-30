@@ -37,22 +37,6 @@
         <SendOutAPI>1</SendOutAPI>
     </API>
 
-
-    <!--<UserID>
-        <SiteKLPudu>tzuchitest</SiteKLPudu>
-        <SiteKlang>tzuchitest</SiteKlang>
-        <SiteMelaka>tzuchitest</SiteMelaka>
-    </UserID>
-
-    <API>
-        <Site>
-            <KLPudu>https://tzuchitest.dyndns.org/clinicsysmini/sage_points.php</KLPudu>
-            <Klang></Klang>
-            <Melaka></Melaka>
-        </Site>
-        <SendOutAPI>1</SendOutAPI>
-    </API>-->
-    
     <CMS>
         <VendorID>31</VendorID>
     </CMS>
