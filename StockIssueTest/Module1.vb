@@ -1,7 +1,5 @@
 ﻿Imports System.IO
-Imports System.Text
 Imports System.Data.SqlClient
-Imports Microsoft.VisualBasic.Logging
 
 Module Module1
 
@@ -10,6 +8,7 @@ Module Module1
     Public Const SQLURLSERVER As String = "server=10.7.111.106:50001,10.7.111.104:50018;data source=KLVM004\SAGEX3DATA;initial catalog=x3erpv12;user id=CMS;password=CMS@123;"
     Public Const FILEPATH As String = "E:\Sage\CxSysTest\Process"
     Public Const USER As String = "X3fcpudu"
+    Public VendorID As String = XMLX.GetSingleValue("//CMS/VendorID")
     Public GlobalDatabaseSchema As String = XMLX.GetSingleValue("//database/databaseSchema")
 
     Public myConn As SqlConnection
@@ -26,9 +25,20 @@ Module Module1
         Dim RDP_Username As String = XMLX.GetSingleValue("//RDP/Username")
         Dim RDP_Password As String = XMLX.GetSingleValue("//RDP/Password")
         Dim json As New JSONGenerator()
-
-        Dim retVal As String = json.SaveProductID_EndpointC()
+        Dim retVal As String
+        retVal = json.SaveProductID_EndpointC()
         retVal = json.GetIssuance_EndpointD()
+
+        ' How to know that a user did an issuance?
+        ' Check the creation and updated date?
+        ' 
+
+
+
+
+
+
+
         Logger.WriteLine(retVal)
     End Sub
 
@@ -155,6 +165,7 @@ Public Class CMS_ISSUANCE
     Public cost As Double
     Public expirationDate As Date
     Public updateDate As Date
+    Public createDate As Date
 
 End Class
 

@@ -3,6 +3,7 @@ Imports Newtonsoft.Json.Linq
 
 Public Class JSONGenerator
 
+
     Public Function GetProductID_EndpointA(item As String, site As String) As String
         Logger.WriteLine($"GetProductID_EndpointA : {item} - {site}")
         Dim columns As New List(Of String) From {
@@ -54,6 +55,8 @@ Public Class JSONGenerator
 
     Public Function GetIssuance_EndpointD() As String
 
+        Logger.WriteLine("Issuance Process - START")
+
         Dim issuance = GetIssuance_Invoice()
         If issuance Is Nothing Then
             Logger.WriteLine("Nothing to issue")
@@ -63,33 +66,38 @@ Public Class JSONGenerator
 
         Dim userID As String = ""
         Dim website As String = ""
-            If issuance.siteTo.Contains("F01") Then
-                userID = XMLX.GetSingleValue("//UserID/SiteKLPudu")
-                website = XMLX.GetSingleValue("//API/Site/KLPudu")
-            ElseIf issuance.siteTo.Contains("F02") Then
-                userID = XMLX.GetSingleValue("//UserID/SiteKlang")
-                website = XMLX.GetSingleValue("//API/Site/Klang")
-            ElseIf issuance.siteTo.Contains("F03") Then
-                Return ""
-                userID = XMLX.GetSingleValue("//UserID/SiteMelaka")
-            website = XMLX.GetSingleValue("//API/Site/Melaka")
-        End If
-        Logger.WriteLine("userID : " + userID)
-        Logger.WriteLine("website : " + website)
+        GetUserID(issuance, userID, website)
 
         Try
+
+            Dim str As String = ""
+
+            'str =
+            '$"{{
+            ' ""userId"" : ""{userID}"",
+            ' ""hash"" : ""{Hash_SHA1.HashSHA1($"{userID}_{issuance.invoiceNumber}_{GlobalHashKey}")}"",
+            ' ""edit_stock"" : {{
+            '  ""invoice_no"" : ""{issuance.invoiceNumber}"",
+            '        ""vendor_id"" : {VendorID},
+            '            ""to_edit"" : {{
+            '                ""itemId"" : {GetProductID_EndpointA(issuance.itemNumber, issuance.siteTo)}
+            '        }}
+            '  ""date"" : ""{Convert.ToDateTime(issuance.updateDate):yyyy-MM-dd}"",
+            '  ""stocks"" : [{GetIssuance_Items()}]
+            ' }}
+            '}}"
             Hash_SHA1.HashSHA1($"{userID}_{issuance.invoiceNumber}_{GlobalHashKey}")
-            Dim str As String =
-            $"{{
-	            ""userId"" : ""{userID}"",
-	            ""hash"" : ""{Hash_SHA1.HashSHA1($"{userID}_{issuance.invoiceNumber}_{GlobalHashKey}")}"",
-	            ""new_stock"" : {{
-		            ""date"" : ""{Convert.ToDateTime(issuance.updateDate):yyyy-MM-dd}"",
-		            ""vendor_id"" : 31,
-		            ""invoice_no"" : ""{issuance.invoiceNumber}"",
-		            ""stocks"" : [{GetIssuance_Items()}]
-	            }}
-            }}"
+            str =
+                $"{{
+	                ""userId"" : ""{userID}"",
+	                ""hash"" : ""{Hash_SHA1.HashSHA1($"{userID}_{issuance.invoiceNumber}_{GlobalHashKey}")}"",
+	                ""new_stock"" : {{
+		                ""date"" : ""{Convert.ToDateTime(issuance.updateDate):yyyy-MM-dd}"",
+		                ""vendor_id"" : {VendorID},
+		                ""invoice_no"" : ""{issuance.invoiceNumber}"",
+		                ""stocks"" : [{GetIssuance_Items()}]
+	                }}
+                }}"
 
             Dim parsedJSON
             Dim beautified
@@ -117,6 +125,9 @@ Public Class JSONGenerator
         Catch ex As Exception
             Logger.WriteLine(ex.ToString & " " & ex.Message)
         End Try
+
+        Logger.WriteLine("Issuance Process - END")
+
         Return ""
     End Function
 
@@ -148,7 +159,6 @@ Public Class JSONGenerator
     End Function
 
     Public Function GetIssuance_Invoice() As CMS_ISSUANCE
-        Dim query As String = $"SELECT VCRNUM_0 INVNUM, STOFCY_0 SITES, ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT, UPDDATTIM_0 UPDATEDDATE FROM {GlobalDatabaseSchema}.STOJOU WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM {GlobalDatabaseSchema}.TEMP_STOJOU)"
         Dim sql As New SQL()
         Dim issuance As New List(Of CMS_ISSUANCE)
 
@@ -157,11 +167,14 @@ Public Class JSONGenerator
         If issuance.Count > 0 Then
             Return issuance.Item(0)
         Else
+            Logger.WriteLine("No product to create")
             Return Nothing
         End If
     End Function
 
     Public Function SaveProductID_EndpointC() As String
+
+        Logger.WriteLine("Product Creation Process - START")
 
         ' Check the TEMP_ITMMASTER table for pending records to send to CxSYS
         Dim sql As New SQL
@@ -185,10 +198,6 @@ Public Class JSONGenerator
             Dim klangItemID = GetProductID_EndpointA(item.itemReference, KlangSite)
             Logger.WriteLine("Melaka : " & item.itemReference)
             Dim melakaItemID = GetProductID_EndpointA(item.itemReference, MelakaSite)
-
-            If puduItemID <> "0" And klangItemID <> "0" And melakaItemID <> "0" Then
-                Return ""
-            End If
 
             If Not itemSyncedInCxSYS Then
 
@@ -215,7 +224,6 @@ Public Class JSONGenerator
                 Else
                     cxsysType = "Unselected"
                 End If
-
 
                 Dim puduUserID As String = XMLX.GetSingleValue("//UserID/SiteKLPudu")
                 Dim puduWebsite As String = XMLX.GetSingleValue("//API/Site/KLPudu")
@@ -306,13 +314,19 @@ Public Class JSONGenerator
 
                 Try
                     ' PUDU
-                    Logger.WriteLine(JToken.Parse(api.SendAPIReturnNull(puduJSON, puduWebsite)).ToString(Formatting.Indented))
+                    If puduItemID = "0" Then
+                        Logger.WriteLine(JToken.Parse(api.SendAPIReturnNull(puduJSON, puduWebsite)).ToString(Formatting.Indented))
+                    End If
 
                     ' KLANG
-                    Logger.WriteLine(JToken.Parse(api.SendAPIReturnNull(klangJSON, klangWebsite)).ToString(Formatting.Indented))
+                    If klangItemID = "0" Then
+                        Logger.WriteLine(JToken.Parse(api.SendAPIReturnNull(klangJSON, klangWebsite)).ToString(Formatting.Indented))
+                    End If
 
                     ' MELAKA
-                    Logger.WriteLine(JToken.Parse(api.SendAPIReturnNull(melakaJSON, melakaWebsite)).ToString(Formatting.Indented))
+                    If melakaItemID = "0" Then
+                        Logger.WriteLine(JToken.Parse(api.SendAPIReturnNull(melakaJSON, melakaWebsite)).ToString(Formatting.Indented))
+                    End If
 
                     ' Remove the item from the table
                     Dim query As String = $"DELETE FROM {GlobalDatabaseSchema}.TEMP_ITMMASTER WHERE ITMREF_0 = '{item.itemReference}'"
@@ -324,10 +338,65 @@ Public Class JSONGenerator
             End If
         Next
 
+        Logger.WriteLine("Product Creation Process - END")
+
         Return ""
 
     End Function
+
+    Public Function EditStock_EndpointF() As String
+
+        Dim sql As New SQL()
+        Dim str As String = ""
+        Dim issuanceRecords As New List(Of CMS_ISSUANCE)
+        sql.ExecuteAndReturnSTOJOURecords(issuanceRecords)
+
+        For Each issuance In issuanceRecords
+
+            Logger.WriteLine("issue.itemNumber : " & issuance.itemNumber)
+            Logger.WriteLine("issue.siteTo : " & issuance.siteTo)
+            Logger.WriteLine("issue.expirationDate : " & issuance.expirationDate)
+            Logger.WriteLine("issue.cost : " & issuance.cost)
+
+            Dim userID As String = Nothing
+            Dim website As String = Nothing
+            GetUserID(issuance, userID, website)
+
+
+            str +=
+            $"{{
+                ""userId"" : ""{userID}"",
+                ""hash"" : ""{Hash_SHA1.HashSHA1($"{userID}_{issuance.invoiceNumber}_{GlobalHashKey}")}"",
+                ""edit_stock"" : {{
+                    ""invoice_no"" : ""{issuance.invoiceNumber}"",
+                    ""vendor_id"" : ""{VendorID}"",
+                    ""to_edit"" : {{
+                        ""itemId"" : {issuance.itemIdNumber},
+                        ""qty"" : {issuance.quantity:.00},
+                        ""expiry"" : ""{issuance.expirationDate}""
+                        ""cost"" : {issuance.cost}
+                    }}
+                }}
+            }}"
+
+        Next
+
+    End Function
+
+    Public Sub GetUserID(issuance As CMS_ISSUANCE, ByRef userID As String, ByRef website As String)
+        If issuance.siteTo.Contains("F01") Then
+            userID = XMLX.GetSingleValue("//UserID/SiteKLPudu")
+            website = XMLX.GetSingleValue("//API/Site/KLPudu")
+        ElseIf issuance.siteTo.Contains("F02") Then
+            userID = XMLX.GetSingleValue("//UserID/SiteKlang")
+            website = XMLX.GetSingleValue("//API/Site/Klang")
+        ElseIf issuance.siteTo.Contains("F03") Then
+            'userID = XMLX.GetSingleValue("//UserID/SiteMelaka")
+            'website = XMLX.GetSingleValue("//API/Site/Melaka")
+            userID = ""
+            website = ""
+        End If
+        Logger.WriteLine("userID : " + userID)
+        Logger.WriteLine("website : " + website)
+    End Sub
 End Class
-
-
-

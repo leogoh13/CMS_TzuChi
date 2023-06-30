@@ -19,7 +19,7 @@ Public Class SQL
     End Sub
 
     Public Sub ExecuteAndReturnSTOJOURecords(ByRef obj As List(Of CMS_ISSUANCE))
-        Dim query = $"SELECT VCRNUM_0 INVNUM, STOFCY_0 SITES, ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT, UPDDATTIM_0 UPDATEDDATE 
+        Dim query = $"SELECT VCRNUM_0 INVNUM, STOFCY_0 SITES, ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT, UPDDATTIM_0 UPDATEDDATE, CREDATTIM_0 CREATEDATE
                         FROM {GlobalDatabaseSchema}.STOJOU 
                         WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM {GlobalDatabaseSchema}.TEMP_STOJOU) AND TRSTYP_0 = 2"
         Try
@@ -28,15 +28,16 @@ Public Class SQL
 
             Using sqlDataReader = sqlCommand.ExecuteReader()
                 While sqlDataReader.Read
-                    Dim issue As New CMS_ISSUANCE
-
-                    issue.siteTo = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("SITES"))
-                    issue.invoiceNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("INVNUM"))
-                    issue.itemNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("ITEM"))
-                    issue.quantity = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("QTY"))
-                    issue.cost = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("AMT"))
-                    issue.expirationDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("EXPDAT"))
-                    issue.updateDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("UPDATEDDATE"))
+                    Dim issue As New CMS_ISSUANCE With {
+                        .siteTo = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("SITES")),
+                        .invoiceNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("INVNUM")),
+                        .itemNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("ITEM")),
+                        .quantity = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("QTY")),
+                        .cost = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("AMT")),
+                        .expirationDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("EXPDAT")),
+                        .updateDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("UPDATEDDATE")),
+                        .createDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("CREATEDATE"))
+                    }
 
                     obj.Add(issue)
                 End While
