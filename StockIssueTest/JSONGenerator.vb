@@ -10,7 +10,7 @@ Public Class JSONGenerator
         columns.Add("DESC2")
 
         Dim sql As New SQL()
-        Dim website As String
+        Dim website As String = ""
         Dim query = $"SELECT ITMREF_0 ITEM, ITMDES1_0 DESC1, ITMDES2_0 DESC2 FROM {GlobalDatabaseSchema}.ITMMASTER WHERE ITMREF_0 = '{item}'"
         Dim retVal = sql.ExecuteQueryAndReturnValue(query, columns)
         Dim userID = Nothing
@@ -116,7 +116,7 @@ Public Class JSONGenerator
 
         Dim sql As New SQL()
         Dim str As String = ""
-        Dim issuanceRecords As New List(Of CMS_ISSUANCE)
+        Dim issuanceRecords As New List(Of CxSYS_ISSUANCE)
         sql.ExecuteAndReturnSTOJOURecords(issuanceRecords)
 
         For Each issue In issuanceRecords
@@ -139,10 +139,10 @@ Public Class JSONGenerator
 
     End Function
 
-    Public Function GetIssuance_Invoice() As CMS_ISSUANCE
+    Public Function GetIssuance_Invoice() As CxSYS_ISSUANCE
         Dim query As String = $"SELECT VCRNUM_0 INVNUM, STOFCY_0 SITES, ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT, UPDDATTIM_0 UPDATEDDATE FROM {GlobalDatabaseSchema}.STOJOU WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM {GlobalDatabaseSchema}.TEMP_STOJOU)"
         Dim sql As New SQL()
-        Dim issuance As New List(Of CMS_ISSUANCE)
+        Dim issuance As New List(Of CxSYS_ISSUANCE)
 
 
         sql.ExecuteAndReturnSTOJOURecords(issuance)
@@ -157,7 +157,7 @@ Public Class JSONGenerator
         Logger.WriteLine("SaveProductID_EndpointC Starts")
         ' Check the TEMP_ITMMASTER table for pending records to send to CxSYS
         Dim sql As New SQL
-        Dim products As New List(Of CMS_PRODUCT)
+        Dim products As New List(Of CxSYS_PRODUCT)
         Dim PuduSite As String = "F01"
         Dim KlangSite As String = "F02"
         Dim MelakaSite As String = "F03"
