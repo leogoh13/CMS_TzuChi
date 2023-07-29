@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿Imports System.IO
+=======
+﻿Imports System.Text
+>>>>>>> Latest Changes
 Imports System.Data.SqlClient
 
 Module Module1
@@ -64,12 +68,10 @@ Public Class CMS_PCS
 
 
 
-        Next
 
-    End Sub
 
-    Public Sub Issuance()
 
+<<<<<<< HEAD
         Dim sql As New SQL()
         Dim issuances As New List(Of PCS_ISSUANCE)
         Dim dt As String = DateTime.Now.ToString("yyyy-MM-dd-HH-mm")
@@ -147,10 +149,19 @@ Public Class Logger
         Dim sw As StreamWriter = file.AppendText()
         sw.WriteLine(datetime & " : " & str)
         sw.Close()
+=======
+
+        Next
+
+    End Sub
+
+    Public Sub Issuance()
+>>>>>>> Latest Changes
 
     End Sub
 End Class
 
+<<<<<<< HEAD
 Public Class CMS_ISSUANCE
 
     Public itemNumber As String
@@ -166,27 +177,6 @@ Public Class CMS_ISSUANCE
     Public expirationDate As Date
     Public updateDate As Date
     Public createDate As Date
+=======
+>>>>>>> Latest Changes
 
-End Class
-
-Public Class CMS_PRODUCT
-    Public userID As String
-    Public hash As String
-    Public type As String
-    Public form As String
-    Public trade_name As String
-    Public generic_name As String
-    Public display_name As String
-    Public purpose As String
-    Public measurement As String
-    Public unit As String
-    Public itemClass As String
-    Public sales_price As String
-    Public cost_price As String
-    Public age_limit As String
-    Public dosage As String
-    Public default_qty As String
-    Public indic_guide As String
-    Public dosage_guide As String
-    Public itemReference As String
-End Class

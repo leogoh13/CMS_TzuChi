@@ -18,8 +18,13 @@ Public Class SQL
         sqlConnection = New SqlConnection(sqlConnStr)
     End Sub
 
+<<<<<<< HEAD
     Public Sub ExecuteAndReturnSTOJOURecords(ByRef obj As List(Of CMS_ISSUANCE))
         Dim query = $"SELECT VCRNUM_0 INVNUM, STOFCY_0 SITES, ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT, UPDDATTIM_0 UPDATEDDATE, CREDATTIM_0 CREATEDATE
+=======
+    Public Sub ExecuteAndReturnSTOJOURecords(ByRef obj As List(Of CxSYS_ISSUANCE))
+        Dim query = $"SELECT VCRNUM_0 INVNUM, STOFCY_0 SITES, ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT, UPDDATTIM_0 UPDATEDDATE 
+>>>>>>> Latest Changes
                         FROM {GlobalDatabaseSchema}.STOJOU 
                         WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM {GlobalDatabaseSchema}.TEMP_STOJOU) AND TRSTYP_0 = 2"
         Try
@@ -28,6 +33,7 @@ Public Class SQL
 
             Using sqlDataReader = sqlCommand.ExecuteReader()
                 While sqlDataReader.Read
+<<<<<<< HEAD
                     Dim issue As New CMS_ISSUANCE With {
                         .siteTo = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("SITES")),
                         .invoiceNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("INVNUM")),
@@ -38,6 +44,17 @@ Public Class SQL
                         .updateDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("UPDATEDDATE")),
                         .createDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("CREATEDATE"))
                     }
+=======
+                    Dim issue As New CxSYS_ISSUANCE
+
+                    issue.siteTo = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("SITES"))
+                    issue.invoiceNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("INVNUM"))
+                    issue.itemNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("ITEM"))
+                    issue.quantity = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("QTY"))
+                    issue.cost = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("AMT"))
+                    issue.expirationDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("EXPDAT"))
+                    issue.updateDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("UPDATEDDATE"))
+>>>>>>> Latest Changes
 
                     obj.Add(issue)
                 End While
@@ -72,7 +89,11 @@ Public Class SQL
             Logger.WriteLine(ex.ToString)
         End Try
     End Sub
+<<<<<<< HEAD
     Public Sub GetNewProductList(ByRef obj As List(Of CMS_PRODUCT))
+=======
+    Public Function GetNewProductList(ByRef obj As List(Of CxSYS_PRODUCT))
+>>>>>>> Latest Changes
         Dim query As String = $"SELECT
 	                            DRUGTYP_0 DRUGTYPE, 
 	                            LEFT(TSICOD_1,1) PHARMACEUTICALFORM,
@@ -104,7 +125,7 @@ Public Class SQL
 
             Using sqlDataReader = sqlCommand.ExecuteReader()
                 While sqlDataReader.Read
-                    Dim product As New CMS_PRODUCT With {
+                    Dim product As New CxSYS_PRODUCT With {
                         .type = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("DRUGTYPE")),
                         .form = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("PHARMACEUTICALFORM")),
                         .trade_name = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("TRADENAME")),
