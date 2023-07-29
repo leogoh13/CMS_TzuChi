@@ -156,7 +156,10 @@ Public Class Logger
     End Sub
 
     Public Sub Issuance()
+<<<<<<< HEAD
 >>>>>>> Latest Changes
+=======
+>>>>>>> Added scripts for easier migration in the future
 
     End Sub
 End Class
