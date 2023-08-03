@@ -104,7 +104,7 @@ Public Class SQL
 
             Using sqlDataReader = sqlCommand.ExecuteReader()
                 While sqlDataReader.Read
-                    Dim product As New CMS_PRODUCT With {
+                    Dim product As New CxSYS_PRODUCT With {
                         .type = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("DRUGTYPE")),
                         .form = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("PHARMACEUTICALFORM")),
                         .trade_name = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("TRADENAME")),
@@ -132,7 +132,7 @@ Public Class SQL
             sqlConnection.Close()
             Logger.WriteLine(ex.ToString & " | " & ex.Message)
         End Try
-    End Sub
+        End Sub
     Public Function ExecuteQueryAndReturnValue(query As String) As List(Of String)
         Dim columns As New List(Of String)
         Dim rowList As New List(Of String)

@@ -139,7 +139,7 @@ Public Class JSONGenerator
 
         Dim sql As New SQL()
         Dim str As String = ""
-        Dim issuanceRecords As New List(Of CMS_ISSUANCE)
+        Dim issuanceRecords As New List(Of CxSYS_ISSUANCE)
         sql.ExecuteAndReturnSTOJOURecords(issuanceRecords)
 
         For Each issue In issuanceRecords
@@ -164,7 +164,7 @@ Public Class JSONGenerator
 
     Public Function GetIssuance_Invoice() As CMS_ISSUANCE
         Dim sql As New SQL()
-        Dim issuance As New List(Of CMS_ISSUANCE)
+        Dim issuance As New List(Of CxSYS_ISSUANCE)
 
 
         sql.ExecuteAndReturnSTOJOURecords(issuance)
