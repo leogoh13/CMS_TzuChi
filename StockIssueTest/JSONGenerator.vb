@@ -105,6 +105,10 @@ Public Class JSONGenerator
             If XMLX.GetSingleValue("//API/SendOutAPI") = "1" Then
                 Try
                     Dim api As New API()
+
+                    Logger.WriteLine("String to send to CxSYS: " + str)
+                    Logger.WriteLine("Website URL: " + website)
+
                     Dim response = api.SendAPIReturnNull(str, website)
                     parsedJSON = JToken.Parse(response)
                     beautified = parsedJSON.ToString(Formatting.Indented)
@@ -391,10 +395,8 @@ Public Class JSONGenerator
             userID = XMLX.GetSingleValue("//UserID/SiteKlang")
             website = XMLX.GetSingleValue("//API/Site/Klang")
         ElseIf issuance.siteTo.Contains("F03") Then
-            'userID = XMLX.GetSingleValue("//UserID/SiteMelaka")
-            'website = XMLX.GetSingleValue("//API/Site/Melaka")
-            userID = ""
-            website = ""
+            userID = XMLX.GetSingleValue("//UserID/SiteMelaka")
+            website = XMLX.GetSingleValue("//API/Site/Melaka")
         End If
         Logger.WriteLine("userID : " + userID)
         Logger.WriteLine("website : " + website)
