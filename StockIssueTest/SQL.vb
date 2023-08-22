@@ -18,13 +18,51 @@ Public Class SQL
         sqlConnection = New SqlConnection(sqlConnStr)
     End Sub
 
-<<<<<<< HEAD
-    Public Sub ExecuteAndReturnSTOJOURecords(ByRef obj As List(Of CMS_ISSUANCE))
-        Dim query = $"SELECT VCRNUM_0 INVNUM, STOFCY_0 SITES, ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT, UPDDATTIM_0 UPDATEDDATE, CREDATTIM_0 CREATEDATE
-=======
+    Public Sub ExcludeMelakaFomStojouRecord()
+        Dim query = $"
+                        SET IDENTITY_INSERT YTCPROD.TEMP_STOJOU_MELAKA ON;
+                        INSERT INTO YTCPROD.TEMP_STOJOU_MELAKA ([BPRNUM_0]
+                                   ,[VCRNUM_0]
+                                   ,[QTYPCU_0]
+                                   ,[UPDDATTIM_0]
+                                   ,[SHLDAT_0]
+                                   ,[CPRAMT_0]
+                                   ,[CHECK_NUM]
+                                   ,[ITMREF_0]
+                                   ,[ITMDES1_0]
+                                   ,[ITMDES2_0]
+                                   ,[ITMID], [ROWID])
+                        SELECT 
+		                        [BPRNUM_0],
+		                        [VCRNUM_0],
+		                        [QTYPCU_0],
+		                        [UPDDATTIM_0],
+		                        [SHLDAT_0],
+		                        [CPRAMT_0],
+		                        [CHECK_NUM],
+		                        [ITMREF_0],
+		                        [ITMDES1_0],
+		                        [ITMDES2_0],
+		                        [ITMID],
+		                        [ROWID]
+                        FROM YTCPROD.TEMP_STOJOU
+                        WHERE VCRNUM_0 LIKE '%F03%';
+                        DELETE FROM YTCPROD.TEMP_STOJOU WHERE VCRNUM_0 LIKE '%F03%';
+                    "
+
+        Try
+            sqlConnection.Open()
+            sqlCommand = New SqlCommand(query, sqlConnection)
+            sqlCommand.ExecuteReader()
+            sqlConnection.Close()
+        Catch ex As Exception
+            sqlConnection.Close()
+            Logger.WriteLine(ex.ToString & " | " & ex.Message)
+        End Try
+    End Sub
+
     Public Sub ExecuteAndReturnSTOJOURecords(ByRef obj As List(Of CxSYS_ISSUANCE))
-        Dim query = $"SELECT VCRNUM_0 INVNUM, STOFCY_0 SITES, ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT, UPDDATTIM_0 UPDATEDDATE 
->>>>>>> Latest Changes
+        Dim query = $"SELECT VCRNUM_0 INVNUM, STOFCY_0 SITES, ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT, UPDDATTIM_0 UPDATEDDATE, CREDATTIM_0 CREATEDATE
                         FROM {GlobalDatabaseSchema}.STOJOU 
                         WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM {GlobalDatabaseSchema}.TEMP_STOJOU) AND TRSTYP_0 = 2"
         Try
@@ -33,8 +71,7 @@ Public Class SQL
 
             Using sqlDataReader = sqlCommand.ExecuteReader()
                 While sqlDataReader.Read
-<<<<<<< HEAD
-                    Dim issue As New CMS_ISSUANCE With {
+                    Dim issue As New CxSYS_ISSUANCE With {
                         .siteTo = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("SITES")),
                         .invoiceNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("INVNUM")),
                         .itemNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("ITEM")),
@@ -44,17 +81,6 @@ Public Class SQL
                         .updateDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("UPDATEDDATE")),
                         .createDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("CREATEDATE"))
                     }
-=======
-                    Dim issue As New CxSYS_ISSUANCE
-
-                    issue.siteTo = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("SITES"))
-                    issue.invoiceNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("INVNUM"))
-                    issue.itemNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("ITEM"))
-                    issue.quantity = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("QTY"))
-                    issue.cost = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("AMT"))
-                    issue.expirationDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("EXPDAT"))
-                    issue.updateDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("UPDATEDDATE"))
->>>>>>> Latest Changes
 
                     obj.Add(issue)
                 End While
@@ -89,11 +115,7 @@ Public Class SQL
             Logger.WriteLine(ex.ToString)
         End Try
     End Sub
-<<<<<<< HEAD
-    Public Sub GetNewProductList(ByRef obj As List(Of CMS_PRODUCT))
-=======
-    Public Function GetNewProductList(ByRef obj As List(Of CxSYS_PRODUCT))
->>>>>>> Latest Changes
+    Public Sub GetNewProductList(ByRef obj As List(Of CxSYS_PRODUCT))
         Dim query As String = $"SELECT
 	                            DRUGTYP_0 DRUGTYPE, 
 	                            LEFT(TSICOD_1,1) PHARMACEUTICALFORM,
@@ -279,53 +301,53 @@ Public Class SQL
         End Try
     End Sub
 
-    Public Sub GetPCSIssuance(ByRef obj)
-        Dim query As String = $"
-                        SELECT 
-	                        '' SUPPLIER_CODE,
-	                        VCRNUM_0 INVOICE_NUMBER,
-	                        UPDDATTIM_0 INVOICE_DATE,
-	                        LOT_0 PO_NO,
-	                        VARVAL_0 TOTAL_BILL_COST,
-	                        ITMREF_0 ITEM_CODE,
-	                        QTYSTU_0 * -1 QTY, 
-	                        ( SELECT SUM(AMTORD_0 * -1) FROM YTCPROD.STOJOU A WHERE A.VCRNUM_0 = VCRNUM_0) COST_PRICE_PER_UNIT, 
-	                        0 DISCOUNT,
-	                        0 DISCOUNT_RM,
-	                        AMTORD_0 * -1 GROSS_AMOUNT,
-	                        SHLDAT_0 EXPIRY_DATE,
-	                        '-' REMARKS
-                        FROM YTCPROD.STOJOU 
-                        WHERE VCRNUM_0 = ( SELECT VCRNUM_0 FROM YTCPROD.TEMP_STOJOU_PCS GROUP BY VCRNUM_0) AND TRSTYP_0 = 2"
+    'Public Sub GetPCSIssuance(ByRef obj)
+    '    Dim query As String = $"
+    '                    SELECT 
+    '                     '' SUPPLIER_CODE,
+    '                     VCRNUM_0 INVOICE_NUMBER,
+    '                     UPDDATTIM_0 INVOICE_DATE,
+    '                     LOT_0 PO_NO,
+    '                     VARVAL_0 TOTAL_BILL_COST,
+    '                     ITMREF_0 ITEM_CODE,
+    '                     QTYSTU_0 * -1 QTY, 
+    '                     ( SELECT SUM(AMTORD_0 * -1) FROM YTCPROD.STOJOU A WHERE A.VCRNUM_0 = VCRNUM_0) COST_PRICE_PER_UNIT, 
+    '                     0 DISCOUNT,
+    '                     0 DISCOUNT_RM,
+    '                     AMTORD_0 * -1 GROSS_AMOUNT,
+    '                     SHLDAT_0 EXPIRY_DATE,
+    '                     '-' REMARKS
+    '                    FROM YTCPROD.STOJOU 
+    '                    WHERE VCRNUM_0 = ( SELECT VCRNUM_0 FROM YTCPROD.TEMP_STOJOU_PCS GROUP BY VCRNUM_0) AND TRSTYP_0 = 2"
 
-        Try
-            sqlConnection.Open()
-            sqlCommand = New SqlCommand(query, sqlConnection)
+    '    Try
+    '        sqlConnection.Open()
+    '        sqlCommand = New SqlCommand(query, sqlConnection)
 
-            Using sqlDataReader = sqlCommand.ExecuteReader()
-                While sqlDataReader.Read
-                    Dim issuance As New PCS_ISSUANCE With {
-                        .supplierCode = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("SUPPLIER_CODE")),
-                        .invoiceNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("INVOICE_NUMBER")),
-                        .invoiceDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("INVOICE_DATE")),
-                        .purchaseOrderNo = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("PO_NO")),
-                        .totalBillCost = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("TOTAL_BILL_COST")),
-                        .itemCode = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("ITEM_CODE")),
-                        .qty = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("QTY")),
-                        .costPricePerUnit = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("COST_PRICE_PER_UNIT")),
-                        .discount = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("DISCOUNT")),
-                        .discountRM = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("DISCOUNT_RM")),
-                        .grossAmount = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("GROSS_AMOUNT")),
-                        .expiryDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("EXPIRY_DATE")),
-                        .remarks = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("REMARKS"))
-                    }
-                    obj.Add(issuance)
-                End While
-            End Using
-            sqlConnection.Close()
-        Catch ex As Exception
+    '        Using sqlDataReader = sqlCommand.ExecuteReader()
+    '            While sqlDataReader.Read
+    '                Dim issuance As New PCS_ISSUANCE With {
+    '                    .supplierCode = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("SUPPLIER_CODE")),
+    '                    .invoiceNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("INVOICE_NUMBER")),
+    '                    .invoiceDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("INVOICE_DATE")),
+    '                    .purchaseOrderNo = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("PO_NO")),
+    '                    .totalBillCost = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("TOTAL_BILL_COST")),
+    '                    .itemCode = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("ITEM_CODE")),
+    '                    .qty = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("QTY")),
+    '                    .costPricePerUnit = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("COST_PRICE_PER_UNIT")),
+    '                    .discount = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("DISCOUNT")),
+    '                    .discountRM = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("DISCOUNT_RM")),
+    '                    .grossAmount = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("GROSS_AMOUNT")),
+    '                    .expiryDate = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("EXPIRY_DATE")),
+    '                    .remarks = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("REMARKS"))
+    '                }
+    '                obj.Add(issuance)
+    '            End While
+    '        End Using
+    '        sqlConnection.Close()
+    '    Catch ex As Exception
 
-        End Try
-    End Sub
+    '    End Try
+    'End Sub
 
 End Class

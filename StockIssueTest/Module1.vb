@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 ﻿Imports System.IO
-=======
-﻿Imports System.Text
->>>>>>> Latest Changes
+Imports System.Text
 Imports System.Data.SqlClient
 
 Module Module1
@@ -31,17 +28,18 @@ Module Module1
         Dim json As New JSONGenerator()
         Dim retVal As String
         retVal = json.SaveProductID_EndpointC()
+
+        ' Exclude Melaka record for now
+        If XMLX.GetSingleValue("//API/ExcludeMelaka") = "1" Then
+            Dim sql As New SQL()
+            sql.ExcludeMelakaFomStojouRecord()
+        End If
+
         retVal = json.GetIssuance_EndpointD()
 
         ' How to know that a user did an issuance?
         ' Check the creation and updated date?
         ' 
-
-
-
-
-
-
 
         Logger.WriteLine(retVal)
     End Sub
@@ -66,120 +64,13 @@ Public Class CMS_PCS
             ' Create strings to be written into the PCS files
             Dim pcsCreate As String = $"""CREATE""|""{itm.ItemReference}""|""{itm.ItemDescription1}""|""{itm.ItemDescription2}""|""{itm.ItemDescription3}""|""{itm.PackageUOM}""|{itm.Unit}|""{itm.StockUOM}""|{itm.MinStock}|{itm.MaxStock}|""{itm.Remark}"""
 
-
-
-
-
-
-<<<<<<< HEAD
-        Dim sql As New SQL()
-        Dim issuances As New List(Of PCS_ISSUANCE)
-        Dim dt As String = DateTime.Now.ToString("yyyy-MM-dd-HH-mm")
-        Dim destinationPath As String = XMLX.GetSingleValue("")
-
-        sql.GetPCSIssuance(issuances)
-
-        For Each issue In issuances
-
-            Dim remark As String = "-"
-            Dim action As String
-            If issue.qty > 0 Then
-                action = "CREATE"
-            Else
-                action = "REVERSE"
-            End If
-
-            Dim pcsIssuance As String =
-                $"""{action}""|""{issue.supplierCode}""|""{issue.invoiceNumber}""|{issue.invoiceDate}|{issue.purchaseOrderNo}|{issue.totalBillCost:0.00}|""{issue.itemCode}""|" &
-                $"{issue.qty:0.00}|{issue.costPricePerUnit:0.000}|{issue.discount:0}|{issue.discountRM:0.000}|{issue.grossAmount:0.000}|{issue.expiryDate:dd/MM/yyyy}|""{remark}"""
-
-
-
-
-
-
-        Next
-
-
-    End Sub
-End Class
-
-Public Class PCS_ISSUANCE
-
-    Public action As String
-    Public supplierCode As String
-    Public invoiceNumber As String
-    Public invoiceDate As DateTime
-    Public purchaseOrderNo As Integer
-    Public totalBillCost As Decimal
-    Public itemCode As String
-    Public qty As Decimal
-    Public costPricePerUnit As Decimal
-    Public discount As Decimal
-    Public discountRM As Decimal
-    Public grossAmount As Decimal
-    Public expiryDate As Date
-    Public remarks As String
-
-End Class
-
-Public Class PCS_PRODUCT
-    Public ItemReference As String
-    Public Model As String
-    Public ItemDescription1 As String
-    Public ItemDescription2 As String
-    Public ItemDescription3 As String
-    Public PackageUOM As String
-    Public Unit As String
-    Public StockUOM As String
-    Public MinStock As String
-    Public MaxStock As String
-    Public Remark As String
-End Class
-
-Public Class Logger
-    Shared ReadOnly filepath As String = $"{My.Application.Info.DirectoryPath}\Logs\Log_{Date.UtcNow:yyyyMMdd}.log"
-    Shared ReadOnly file As New FileInfo(filepath)
-    Public Shared Sub WriteLine(str As String)
-        If Not file.Exists() Then
-            file.Create().Close()
-        End If
-
-        Dim datetime = Date.Now.ToString("dd-MM-yyyy hh:mm:ss tt")
-        Dim sw As StreamWriter = file.AppendText()
-        sw.WriteLine(datetime & " : " & str)
-        sw.Close()
-=======
-
         Next
 
     End Sub
 
     Public Sub Issuance()
-<<<<<<< HEAD
->>>>>>> Latest Changes
-=======
->>>>>>> Added scripts for easier migration in the future
 
     End Sub
 End Class
 
-<<<<<<< HEAD
-Public Class CMS_ISSUANCE
-
-    Public itemNumber As String
-    Public itemIdNumber As String
-    Public hash As String
-    Public invoiceNumber As String
-    Public vendorID As String
-    Public itemDesc1 As String
-    Public itemDesc2 As String
-    Public siteTo As String
-    Public quantity As Double
-    Public cost As Double
-    Public expirationDate As Date
-    Public updateDate As Date
-    Public createDate As Date
-=======
->>>>>>> Latest Changes
 
