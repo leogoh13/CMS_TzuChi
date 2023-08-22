@@ -28,17 +28,18 @@ Module Module1
         Dim json As New JSONGenerator()
         Dim retVal As String
         retVal = json.SaveProductID_EndpointC()
+
+        ' Exclude Melaka record for now
+        If XMLX.GetSingleValue("//API/ExcludeMelaka") = "1" Then
+            Dim sql As New SQL()
+            sql.ExcludeMelakaFomStojouRecord()
+        End If
+
         retVal = json.GetIssuance_EndpointD()
 
         ' How to know that a user did an issuance?
         ' Check the creation and updated date?
         ' 
-
-
-
-
-
-
 
         Logger.WriteLine(retVal)
     End Sub
@@ -62,12 +63,6 @@ Public Class CMS_PCS
 
             ' Create strings to be written into the PCS files
             Dim pcsCreate As String = $"""CREATE""|""{itm.ItemReference}""|""{itm.ItemDescription1}""|""{itm.ItemDescription2}""|""{itm.ItemDescription3}""|""{itm.PackageUOM}""|{itm.Unit}|""{itm.StockUOM}""|{itm.MinStock}|{itm.MaxStock}|""{itm.Remark}"""
-
-
-
-
-
-
 
         Next
 

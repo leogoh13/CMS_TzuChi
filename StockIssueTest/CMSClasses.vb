@@ -12,6 +12,7 @@
     Public cost As Double
     Public expirationDate As Date
     Public updateDate As Date
+    Public createDate As Date
 
 End Class
 
