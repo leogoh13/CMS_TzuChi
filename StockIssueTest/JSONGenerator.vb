@@ -357,6 +357,7 @@ Public Class JSONGenerator
         Dim str As String = ""
 
         Dim issuanceRecords As New List(Of CxSYS_ISSUANCE)
+
         sql.ExecuteAndReturnEditedSTOJOURecords(issuanceRecords)
 
 
@@ -394,7 +395,9 @@ Public Class JSONGenerator
         Return str
     End Function
 
+
     Public Sub GetUserID(issuance As CxSYS_ISSUANCE, ByRef userID As String, ByRef website As String)
+
         If issuance.siteTo.Contains("F01") Then
             userID = XMLX.GetSingleValue($"//{GlobalEnvironment}/UserID/SiteKLPudu")
             website = XMLX.GetSingleValue($"//{GlobalEnvironment}/API/Site/KLPudu")

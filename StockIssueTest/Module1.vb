@@ -31,6 +31,7 @@ Module Module1
         Dim retVal As String
         retVal = json.SaveProductID_EndpointC()
 
+
         ' Exclude Melaka record for now
         If XMLX.GetSingleValue($"//{GlobalEnvironment}/API/ExcludeMelaka") = "1" Then
             Dim sql As New SQL()
@@ -38,7 +39,6 @@ Module Module1
         End If
 
         retVal = json.GetIssuance_EndpointD()
-
 
         Logger.WriteLine(retVal)
     End Sub
@@ -53,7 +53,6 @@ Public Class CMS_PCS
         Dim products As New List(Of PCS_PRODUCT)
         Dim dt As String = DateTime.Now.ToString("yyyy-MM-dd-HH-mm")
         Dim destinationPath As String = XMLX.GetSingleValue("")
-
 
         sql.GetPCSItems(products)
 

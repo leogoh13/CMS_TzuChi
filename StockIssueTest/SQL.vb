@@ -18,6 +18,7 @@ Public Class SQL
         sqlConnection = New SqlConnection(sqlConnStr)
     End Sub
 
+
     Public Sub ExcludeMelakaFomStojouRecord()
         Dim query = $"
                         SET IDENTITY_INSERT {GlobalDatabaseSchema}.TEMP_STOJOU_MELAKA ON;
@@ -73,6 +74,7 @@ Public Class SQL
             Using sqlDataReader = sqlCommand.ExecuteReader()
                 While sqlDataReader.Read
                     Dim issue As New CxSYS_ISSUANCE With {
+
                         .siteTo = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("SITES")),
                         .invoiceNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("INVNUM")),
                         .itemNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("ITEM")),
@@ -183,7 +185,8 @@ Public Class SQL
             Logger.WriteLine(ex.ToString)
         End Try
     End Sub
-    Public Sub GetNewProductList(ByRef obj As List(Of CMS_PRODUCT))
+    Public Sub GetNewProductList(ByRef obj As List(Of CxSYS_PRODUCT))
+
         Dim query As String = $"SELECT
 	                            DRUGTYP_0 DRUGTYPE, 
 	                            LEFT(TSICOD_1,1) PHARMACEUTICALFORM,
@@ -270,6 +273,7 @@ Public Class SQL
             Logger.WriteLine(ex.ToString & " | " & ex.Message)
         End Try
     End Sub
+
     Public Function ExecuteQueryAndReturnValue(query As String) As List(Of String)
         Dim columns As New List(Of String)
         Dim rowList As New List(Of String)
