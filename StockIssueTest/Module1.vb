@@ -1,5 +1,4 @@
 ﻿Imports System.IO
-Imports System.Text
 Imports System.Data.SqlClient
 
 Module Module1
@@ -8,6 +7,7 @@ Module Module1
     Public GlobalDatabaseSchema As String
     Public Const GlobalHashKey As String = "cx5ysSagei"
     Public VendorID As String = XMLX.GetSingleValue("//CMS/VendorID")
+
 
 
     Public myConn As SqlConnection
@@ -39,12 +39,14 @@ Module Module1
 
         retVal = json.GetIssuance_EndpointD()
 
+
         Logger.WriteLine(retVal)
     End Sub
 
 End Module
 
 Public Class CMS_PCS
+
 
     Public Sub CreateOrUpdateProduct()
         Dim sql As New SQL()
@@ -54,8 +56,6 @@ Public Class CMS_PCS
 
 
         sql.GetPCSItems(products)
-
-
 
         For Each itm In products
 

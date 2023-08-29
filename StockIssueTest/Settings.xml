@@ -93,9 +93,11 @@
             <Klang>https://tzuchiklang.dyndns.org/clinicsysmini/sage_points.php</Klang>
             <Melaka>https://tzuchimelaka.dyndns.org/clinicsysmini/sage_points.php</Melaka>
         </Site>
+
         
         <SendOutAPI>1</SendOutAPI>
         <ExcludeMelaka>1</ExcludeMelaka>
+
     </API>
 
     <CMS>
