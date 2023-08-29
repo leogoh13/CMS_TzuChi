@@ -19,14 +19,14 @@ Public Class JSONGenerator
         Dim userID = Nothing
 
         If site.Contains("F01") Then
-            userID = XMLX.GetSingleValue("//UserID/SiteKLPudu")
-            website = XMLX.GetSingleValue("//API/Site/KLPudu")
+            userID = XMLX.GetSingleValue($"//{GlobalEnvironment}/UserID/SiteKLPudu")
+            website = XMLX.GetSingleValue($"//{GlobalEnvironment}/API/Site/KLPudu")
         ElseIf site.Contains("F02") Then
-            userID = XMLX.GetSingleValue("//UserID/SiteKlang")
-            website = XMLX.GetSingleValue("//API/Site/Klang")
+            userID = XMLX.GetSingleValue($"//{GlobalEnvironment}/UserID/SiteKlang")
+            website = XMLX.GetSingleValue($"//{GlobalEnvironment}/API/Site/Klang")
         ElseIf site.Contains("F03") Then
-            userID = XMLX.GetSingleValue("//UserID/SiteMelaka")
-            website = XMLX.GetSingleValue("//API/Site/Melaka")
+            userID = XMLX.GetSingleValue($"//{GlobalEnvironment}/UserID/SiteMelaka")
+            website = XMLX.GetSingleValue($"//{GlobalEnvironment}/API/Site/Melaka")
         End If
 
         Logger.WriteLine($"GetProductID_EndpointA userID : {userID}")
@@ -54,14 +54,22 @@ Public Class JSONGenerator
     End Function
 
     Public Function GetIssuance_EndpointD() As String
-
+        Dim sql As New SQL()
         Logger.WriteLine("Issuance Process - START")
 
         Dim issuance = GetIssuance_Invoice()
+
         If issuance Is Nothing Then
             Logger.WriteLine("Nothing to issue")
             Return ""
         End If
+
+        If sql.CheckIssuanceEdited() Then
+            Logger.WriteLine("Issuance have been updated, going to do edit issuance instead.")
+            EditStock_EndpointF()
+            Return ""
+        End If
+
         Logger.WriteLine("issuance.siteTo : " + issuance.siteTo)
 
         Dim userID As String = ""
@@ -72,37 +80,23 @@ Public Class JSONGenerator
 
             Dim str As String = ""
 
-            'str =
-            '$"{{
-            ' ""userId"" : ""{userID}"",
-            ' ""hash"" : ""{Hash_SHA1.HashSHA1($"{userID}_{issuance.invoiceNumber}_{GlobalHashKey}")}"",
-            ' ""edit_stock"" : {{
-            '  ""invoice_no"" : ""{issuance.invoiceNumber}"",
-            '        ""vendor_id"" : {VendorID},
-            '            ""to_edit"" : {{
-            '                ""itemId"" : {GetProductID_EndpointA(issuance.itemNumber, issuance.siteTo)}
-            '        }}
-            '  ""date"" : ""{Convert.ToDateTime(issuance.updateDate):yyyy-MM-dd}"",
-            '  ""stocks"" : [{GetIssuance_Items()}]
-            ' }}
-            '}}"
             Hash_SHA1.HashSHA1($"{userID}_{issuance.invoiceNumber}_{GlobalHashKey}")
             str =
                 $"{{
-	                ""userId"" : ""{userID}"",
-	                ""hash"" : ""{Hash_SHA1.HashSHA1($"{userID}_{issuance.invoiceNumber}_{GlobalHashKey}")}"",
-	                ""new_stock"" : {{
-		                ""date"" : ""{Convert.ToDateTime(issuance.updateDate):yyyy-MM-dd}"",
-		                ""vendor_id"" : {VendorID},
-		                ""invoice_no"" : ""{issuance.invoiceNumber}"",
-		                ""stocks"" : [{GetIssuance_Items()}]
-	                }}
+                    ""userId"" : ""{userID}"",
+                    ""hash"" : ""{Hash_SHA1.HashSHA1($"{userID}_{issuance.invoiceNumber}_{GlobalHashKey}")}"",
+                    ""new_stock"" : {{
+                        ""date"" : ""{Convert.ToDateTime(issuance.updateDate):yyyy-MM-dd}"",
+                        ""vendor_id"" : {VendorID},
+                        ""invoice_no"" : ""{issuance.invoiceNumber}"",
+                        ""stocks"" : [{GetIssuance_Items()}]
+                    }}
                 }}"
 
             Dim parsedJSON
             Dim beautified
             Dim minified
-            If XMLX.GetSingleValue("//API/SendOutAPI") = "1" Then
+            If XMLX.GetSingleValue($"//{GlobalEnvironment}/API/SendOutAPI") = "1" Then
                 Try
                     Dim api As New API()
 
@@ -114,7 +108,6 @@ Public Class JSONGenerator
                     beautified = parsedJSON.ToString(Formatting.Indented)
                     minified = parsedJSON.ToString(Formatting.None)
                     Logger.WriteLine(beautified)
-                    Dim sql As New SQL
                     Dim query As String = $"DELETE FROM {GlobalDatabaseSchema}.TEMP_STOJOU WHERE VCRNUM_0 = '{issuance.invoiceNumber}'"
                     sql.ExecuteCustomQueryAndReturnValue(query)
                 Catch ex As Exception
@@ -229,14 +222,14 @@ Public Class JSONGenerator
                     cxsysType = "Unselected"
                 End If
 
-                Dim puduUserID As String = XMLX.GetSingleValue("//UserID/SiteKLPudu")
-                Dim puduWebsite As String = XMLX.GetSingleValue("//API/Site/KLPudu")
+                Dim puduUserID As String = XMLX.GetSingleValue($"//{GlobalEnvironment}/UserID/SiteKLPudu")
+                Dim puduWebsite As String = XMLX.GetSingleValue($"//{GlobalEnvironment}/API/Site/KLPudu")
 
-                Dim klangUserID As String = XMLX.GetSingleValue("//UserID/SiteKlang")
-                Dim klangWebsite As String = XMLX.GetSingleValue("//API/Site/Klang")
+                Dim klangUserID As String = XMLX.GetSingleValue($"//{GlobalEnvironment}/UserID/SiteKlang")
+                Dim klangWebsite As String = XMLX.GetSingleValue($"//{GlobalEnvironment}/API/Site/Klang")
 
-                Dim melakaUserID As String = XMLX.GetSingleValue("//UserID/SiteMelaka")
-                Dim melakaWebsite As String = XMLX.GetSingleValue("//API/Site/Melaka")
+                Dim melakaUserID As String = XMLX.GetSingleValue($"//{GlobalEnvironment}/UserID/SiteMelaka")
+                Dim melakaWebsite As String = XMLX.GetSingleValue($"//{GlobalEnvironment}/API/Site/Melaka")
 
                 Dim puduHash = Hash_SHA1.HashSHA1($"{puduUserID}_{item.trade_name}_{GlobalHashKey}")
                 Dim klangHash = Hash_SHA1.HashSHA1($"{klangUserID}_{item.trade_name}_{GlobalHashKey}")
@@ -353,7 +346,7 @@ Public Class JSONGenerator
         Dim sql As New SQL()
         Dim str As String = ""
         Dim issuanceRecords As New List(Of CxSYS_ISSUANCE)
-        sql.ExecuteAndReturnSTOJOURecords(issuanceRecords)
+        sql.ExecuteAndReturnEditedSTOJOURecords(issuanceRecords)
 
         For Each issuance In issuanceRecords
 
@@ -362,10 +355,9 @@ Public Class JSONGenerator
             Logger.WriteLine("issue.expirationDate : " & issuance.expirationDate)
             Logger.WriteLine("issue.cost : " & issuance.cost)
 
-            Dim userID As String = Nothing
-            Dim website As String = Nothing
+            Dim userID As String = ""
+            Dim website As String = ""
             GetUserID(issuance, userID, website)
-
 
             str +=
             $"{{
@@ -385,18 +377,19 @@ Public Class JSONGenerator
 
         Next
 
+        Return str
     End Function
 
     Public Sub GetUserID(issuance As CxSYS_ISSUANCE, ByRef userID As String, ByRef website As String)
         If issuance.siteTo.Contains("F01") Then
-            userID = XMLX.GetSingleValue("//UserID/SiteKLPudu")
-            website = XMLX.GetSingleValue("//API/Site/KLPudu")
+            userID = XMLX.GetSingleValue($"//{GlobalEnvironment}/UserID/SiteKLPudu")
+            website = XMLX.GetSingleValue($"//{GlobalEnvironment}/API/Site/KLPudu")
         ElseIf issuance.siteTo.Contains("F02") Then
-            userID = XMLX.GetSingleValue("//UserID/SiteKlang")
-            website = XMLX.GetSingleValue("//API/Site/Klang")
+            userID = XMLX.GetSingleValue($"//{GlobalEnvironment}/UserID/SiteKlang")
+            website = XMLX.GetSingleValue($"//{GlobalEnvironment}/API/Site/Klang")
         ElseIf issuance.siteTo.Contains("F03") Then
-            userID = XMLX.GetSingleValue("//UserID/SiteMelaka")
-            website = XMLX.GetSingleValue("//API/Site/Melaka")
+            userID = XMLX.GetSingleValue($"//{GlobalEnvironment}/UserID/SiteMelaka")
+            website = XMLX.GetSingleValue($"//{GlobalEnvironment}/API/Site/Melaka")
         End If
         Logger.WriteLine("userID : " + userID)
         Logger.WriteLine("website : " + website)

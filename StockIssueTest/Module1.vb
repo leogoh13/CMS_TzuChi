@@ -4,42 +4,40 @@ Imports System.Data.SqlClient
 
 Module Module1
 
+    Public GlobalEnvironmentFlag As String = XMLX.GetSingleValue("//Environment")
+    Public GlobalDatabaseSchema As String
     Public Const GlobalHashKey As String = "cx5ysSagei"
-    Public Const SQLURL As String = "data source=KLVM004\SAGEX3DATA;initial catalog=x3erpv12;user id=CMS;password=CMS@123;"
-    Public Const SQLURLSERVER As String = "server=10.7.111.106:50001,10.7.111.104:50018;data source=KLVM004\SAGEX3DATA;initial catalog=x3erpv12;user id=CMS;password=CMS@123;"
-    Public Const FILEPATH As String = "E:\Sage\CxSysTest\Process"
-    Public Const USER As String = "X3fcpudu"
     Public VendorID As String = XMLX.GetSingleValue("//CMS/VendorID")
-    Public GlobalDatabaseSchema As String = XMLX.GetSingleValue("//database/databaseSchema")
+
 
     Public myConn As SqlConnection
     Public myCmd As SqlCommand
     Public myReader As SqlDataReader
+    Public GlobalEnvironment As String
 
     Sub Main()
 
+        If GlobalEnvironmentFlag = "1" Then
+            GlobalEnvironment = "Production"
+        Else
+            GlobalEnvironment = "Testing"
+        End If
+
+        GlobalDatabaseSchema = XMLX.GetSingleValue($"//{GlobalEnvironmentFlag}/database/databaseSchema")
+
         Logger.WriteLine("***********************************************************************************************************")
 
-        Dim impersonator As New clsAuthenticator
-        Dim RDP_Directory As String = XMLX.GetSingleValue("//RDP/Directory")
-        Dim RDP_Domain As String = XMLX.GetSingleValue("//RDP/Domain")
-        Dim RDP_Username As String = XMLX.GetSingleValue("//RDP/Username")
-        Dim RDP_Password As String = XMLX.GetSingleValue("//RDP/Password")
         Dim json As New JSONGenerator()
         Dim retVal As String
         retVal = json.SaveProductID_EndpointC()
 
         ' Exclude Melaka record for now
-        If XMLX.GetSingleValue("//API/ExcludeMelaka") = "1" Then
+        If XMLX.GetSingleValue($"//{GlobalEnvironment}/API/ExcludeMelaka") = "1" Then
             Dim sql As New SQL()
             sql.ExcludeMelakaFomStojouRecord()
         End If
 
         retVal = json.GetIssuance_EndpointD()
-
-        ' How to know that a user did an issuance?
-        ' Check the creation and updated date?
-        ' 
 
         Logger.WriteLine(retVal)
     End Sub
