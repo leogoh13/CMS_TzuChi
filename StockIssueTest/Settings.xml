@@ -18,25 +18,84 @@
         <Password>Cms@1234</Password>
     </RDP>
 
-	<UserID>
+    <!-- 1 - Production; 2 - Testing-->
+    <Environment>2</Environment>
+    
+    <Testing>
+        <database>
+            <serverIP>10.7.111.104</serverIP>
+            <dataSource>10.7.111.104\SAGEX3DATA</dataSource>
+            <initialCatalog>x3erpv12</initialCatalog>
+            <databaseName>x3erpv12</databaseName>
+            <dbUserID>CMS</dbUserID>
+            <dbPassword>CMS@123</dbPassword>
+            <databaseSchema>YTCUAT5</databaseSchema>
+        </database>
+        
+        <UserID>
+            <SiteKLPudu>tzuchitest</SiteKLPudu>
+            <SiteKlang>tzuchitest</SiteKlang>
+            <SiteMelaka>tzuchitest</SiteMelaka>
+        </UserID>
+        <API>
+            <Site>
+                <KLPudu>https://tzuchitest.dyndns.org/clinicsysmini/sage_points.php</KLPudu>
+                <Klang>https://tzuchitest.dyndns.org/clinicsysmini/sage_points.php</Klang>
+                <Melaka>https://tzuchitest.dyndns.org/clinicsysmini/sage_points.php</Melaka>
+            </Site>
+        </API>
+
+        <!-- Send Out API JSON; 1 = Yes; 0 = No -->
+        <SendOutAPI>1</SendOutAPI>
+        <ExcludeMelaka>1</ExcludeMelaka>
+    </Testing>
+
+    <Production>
+        <database>
+            <serverIP>10.7.111.104</serverIP>
+            <dataSource>10.7.111.104\SAGEX3DATA</dataSource>
+            <initialCatalog>x3erpv12</initialCatalog>
+            <databaseName>x3erpv12</databaseName>
+            <dbUserID>CMS</dbUserID>
+            <dbPassword>CMS@123</dbPassword>
+            <databaseSchema>YTCPROD</databaseSchema>
+        </database>
+        
+        <UserID>
+            <SiteKLPudu>X3fcpudu</SiteKLPudu>
+            <SiteKlang>X3fcklang</SiteKlang>
+            <SiteMelaka>X3fcmlk</SiteMelaka>
+        </UserID>
+        <API>
+            <Site>
+                <KLPudu>https://tzuchipudu.dyndns.org/clinicsysmini/sage_points.php</KLPudu>
+                <Klang>https://tzuchiklang.dyndns.org/clinicsysmini/sage_points.php</Klang>
+                <Melaka>https://tzuchimelaka.dyndns.org/clinicsysmini/sage_points.php</Melaka>
+            </Site>
+        </API>
+
+        <!-- Send Out API JSON; 1 = Yes; 0 = No; -->
+        <SendOutAPI>1</SendOutAPI>
+        <!-- Melaka have an issue the causing everything to hang. So added a logic to exclude Melaka records. -->
+        <ExcludeMelaka>1</ExcludeMelaka>
+    </Production>
+    
+    
+    <!--<UserID>
         <SiteKLPudu>X3fcpudu</SiteKLPudu>
         <SiteKlang>X3fcklang</SiteKlang>
         <SiteMelaka>X3fcmlk</SiteMelaka>
     </UserID>
 
-	<API>
+    <API>
         <Site>
             <KLPudu>https://tzuchipudu.dyndns.org/clinicsysmini/sage_points.php</KLPudu>
             <Klang>https://tzuchiklang.dyndns.org/clinicsysmini/sage_points.php</Klang>
             <Melaka>https://tzuchimelaka.dyndns.org/clinicsysmini/sage_points.php</Melaka>
         </Site>
+
         
-         Send Out API JSON  
-         1 = Yes  
-         0 = No   
         <SendOutAPI>1</SendOutAPI>
-        
-        <!-- Melaka have an issue the causing everything to hang. So added a logic to exclude Melaka records. -->
         <ExcludeMelaka>1</ExcludeMelaka>
 
     </API>
@@ -45,16 +104,14 @@
         <VendorID>31</VendorID>
     </CMS>
 
-	<PCS>
-		<Issuance>
-			<FileDestinationPath></FileDestinationPath>
-		</Issuance>
-		<Product>
-			<FileDestinationPath></FileDestinationPath>
-		</Product>
-	</PCS>
-	
-	
+    <PCS>
+        <Issuance>
+            <FileDestinationPath></FileDestinationPath>
+        </Issuance>
+        <Product>
+            <FileDestinationPath></FileDestinationPath>
+        </Product>
+    </PCS>-->
 </root>
 
 
