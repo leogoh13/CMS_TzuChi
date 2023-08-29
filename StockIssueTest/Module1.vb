@@ -1,5 +1,4 @@
 ﻿Imports System.IO
-Imports System.Text
 Imports System.Data.SqlClient
 
 Module Module1
@@ -29,6 +28,7 @@ Module Module1
         Dim retVal As String
         retVal = json.SaveProductID_EndpointC()
 
+
         ' Exclude Melaka record for now
         If XMLX.GetSingleValue("//API/ExcludeMelaka") = "1" Then
             Dim sql As New SQL()
@@ -37,10 +37,6 @@ Module Module1
 
         retVal = json.GetIssuance_EndpointD()
 
-        ' How to know that a user did an issuance?
-        ' Check the creation and updated date?
-        ' 
-
         Logger.WriteLine(retVal)
     End Sub
 
@@ -48,16 +44,14 @@ End Module
 
 Public Class CMS_PCS
 
+
     Public Sub CreateOrUpdateProduct()
         Dim sql As New SQL()
         Dim products As New List(Of PCS_PRODUCT)
         Dim dt As String = DateTime.Now.ToString("yyyy-MM-dd-HH-mm")
         Dim destinationPath As String = XMLX.GetSingleValue("")
 
-
         sql.GetPCSItems(products)
-
-
 
         For Each itm In products
 

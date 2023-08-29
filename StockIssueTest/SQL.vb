@@ -18,6 +18,7 @@ Public Class SQL
         sqlConnection = New SqlConnection(sqlConnStr)
     End Sub
 
+
     Public Sub ExcludeMelakaFomStojouRecord()
         Dim query = $"
                         SET IDENTITY_INSERT YTCPROD.TEMP_STOJOU_MELAKA ON;
@@ -62,6 +63,7 @@ Public Class SQL
     End Sub
 
     Public Sub ExecuteAndReturnSTOJOURecords(ByRef obj As List(Of CxSYS_ISSUANCE))
+
         Dim query = $"SELECT VCRNUM_0 INVNUM, STOFCY_0 SITES, ITMREF_0 ITEM, QTYSTU_0 * -1 QTY, AMTORD_0 * -1 AMT, SHLDAT_0 EXPDAT, UPDDATTIM_0 UPDATEDDATE, CREDATTIM_0 CREATEDATE
                         FROM {GlobalDatabaseSchema}.STOJOU 
                         WHERE VCRNUM_0 = ( SELECT TOP 1 VCRNUM_0 FROM {GlobalDatabaseSchema}.TEMP_STOJOU) AND TRSTYP_0 = 2"
@@ -72,6 +74,7 @@ Public Class SQL
             Using sqlDataReader = sqlCommand.ExecuteReader()
                 While sqlDataReader.Read
                     Dim issue As New CxSYS_ISSUANCE With {
+
                         .siteTo = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("SITES")),
                         .invoiceNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("INVNUM")),
                         .itemNumber = sqlDataReader.GetValue(sqlDataReader.GetOrdinal("ITEM")),
@@ -116,6 +119,7 @@ Public Class SQL
         End Try
     End Sub
     Public Sub GetNewProductList(ByRef obj As List(Of CxSYS_PRODUCT))
+
         Dim query As String = $"SELECT
 	                            DRUGTYP_0 DRUGTYPE, 
 	                            LEFT(TSICOD_1,1) PHARMACEUTICALFORM,
@@ -176,6 +180,7 @@ Public Class SQL
             Logger.WriteLine(ex.ToString & " | " & ex.Message)
         End Try
     End Sub
+
     Public Function ExecuteQueryAndReturnValue(query As String) As List(Of String)
         Dim columns As New List(Of String)
         Dim rowList As New List(Of String)

@@ -163,6 +163,7 @@ Public Class JSONGenerator
     End Function
 
     Public Function GetIssuance_Invoice() As CxSYS_ISSUANCE
+
         Dim sql As New SQL()
         Dim issuance As New List(Of CxSYS_ISSUANCE)
 
@@ -183,6 +184,7 @@ Public Class JSONGenerator
         ' Check the TEMP_ITMMASTER table for pending records to send to CxSYS
         Dim sql As New SQL
         Dim products As New List(Of CxSYS_PRODUCT)
+
 
         'Purposely set to these to trigger to all sites
         Dim PuduSite As String = "F01"
@@ -352,7 +354,9 @@ Public Class JSONGenerator
 
         Dim sql As New SQL()
         Dim str As String = ""
+
         Dim issuanceRecords As New List(Of CxSYS_ISSUANCE)
+
         sql.ExecuteAndReturnSTOJOURecords(issuanceRecords)
 
         For Each issuance In issuanceRecords
@@ -387,7 +391,9 @@ Public Class JSONGenerator
 
     End Function
 
+
     Public Sub GetUserID(issuance As CxSYS_ISSUANCE, ByRef userID As String, ByRef website As String)
+
         If issuance.siteTo.Contains("F01") Then
             userID = XMLX.GetSingleValue("//UserID/SiteKLPudu")
             website = XMLX.GetSingleValue("//API/Site/KLPudu")

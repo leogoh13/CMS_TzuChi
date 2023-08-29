@@ -51,6 +51,7 @@ Public Class API
             request.ContentType = "application/json"
             request.Method = "POST"
 
+
             If XMLX.GetSingleValue("//API/SendOutAPI") = "1" Then
 
                 Using requestStream = request.GetRequestStream
@@ -61,7 +62,6 @@ Public Class API
                             response = reader.ReadToEnd()
                         End Using
                     End Using
-
                 End Using
             End If
 

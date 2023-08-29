@@ -38,6 +38,7 @@
         
         <!-- Melaka have an issue the causing everything to hang. So added a logic to exclude Melaka records. -->
         <ExcludeMelaka>1</ExcludeMelaka>
+
     </API>
 
     <CMS>
