@@ -54,8 +54,6 @@ Public Class CMS_PCS
         Dim dt As String = DateTime.Now.ToString("yyyy-MM-dd-HH-mm")
         Dim destinationPath As String = XMLX.GetSingleValue("")
 
-        sql.GetPCSItems(products)
-
         For Each itm In products
 
             ' Create strings to be written into the PCS files
