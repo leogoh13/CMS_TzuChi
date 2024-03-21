@@ -23,7 +23,7 @@ Module Module1
             GlobalEnvironment = "Testing"
         End If
 
-        GlobalDatabaseSchema = XMLX.GetSingleValue($"//{GlobalEnvironmentFlag}/database/databaseSchema")
+        GlobalDatabaseSchema = XMLX.GetSingleValue($"//{GlobalEnvironment}/database/databaseSchema")
 
         Logger.WriteLine("***********************************************************************************************************")
 
@@ -38,7 +38,7 @@ Module Module1
             sql.ExcludeMelakaFomStojouRecord()
         End If
 
-        retVal = json.GetIssuance_EndpointD()
+        retVal = json.SendIssuance_EndpointD()
 
         Logger.WriteLine(retVal)
     End Sub

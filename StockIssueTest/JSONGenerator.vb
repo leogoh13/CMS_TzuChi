@@ -55,7 +55,7 @@ Public Class JSONGenerator
 
     End Function
 
-    Public Function GetIssuance_EndpointD() As String
+    Public Function SendIssuance_EndpointD() As String
         Dim sql As New SQL()
         Logger.WriteLine("Issuance Process - START")
 
